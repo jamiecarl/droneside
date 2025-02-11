@@ -1,7 +1,7 @@
 import { NativeScriptConfig } from '@nativescript/core';
 
 export default {
-  id: 'org.nativescript.droneside',
+  id: 'org.jamiecarl.droneside',
   appPath: 'src',
   appResourcesPath: 'App_Resources',
   android: {
