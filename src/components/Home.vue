@@ -4,29 +4,15 @@ import {
   onMounted,
   $navigateTo,
 } from 'nativescript-vue';
-import Details from './Details.vue';
-
-interface ClubType {
-  ID: string;
-  Name: string;
-  LogoUrl: string;
-}
-
-interface EventType {
-  ID: string;
-  Start: string;
-  End: string;
-  Name: string;
-  PilotCount: number;
-  Club: ClubType;
-  BannerUrl: string;
-}
+import EventDetails from './EventDetails.vue';
+import { EventType } from 'types/events.vue';
 
 const events = ref<EventType[]>([]);
 const loading = ref(true);
 
 async function fetchEvents() {
   try {
+    console.log('Fetching events...');
     const response = await fetch('https://fpvtrackside.com/api/public/events');
     const data = await response.json();
     events.value = data.map((event: EventType) => ({
@@ -49,6 +35,7 @@ function formatDate(dateString: string): string {
 }
 
 onMounted(() => {
+  console.log('Home mounted');
   fetchEvents();
 });
 </script>
@@ -60,14 +47,14 @@ onMounted(() => {
         <Label text="DroneSide" class="font-bold text-lg" />
       </ActionBar>
 
-      <GridLayout rows="*, auto, auto, *" class="px-4" height="100%">
-        <ListView v-if="!loading" :items="events" row="1" height="100%">
-          <template #default="{ item: event }">
-            <GridLayout columns="auto, *" class="p-4 m-2 bg-white border-2 border-gray-300 rounded-lg"
-              @tap="$navigateTo(Details, { props: { event } })">
+      <GridLayout class="text-white">
+        <ListView v-if="!loading" :items="events">
+          <template #default="{ item: event }" class="mb-2">
+            <GridLayout columns="auto, *" class="p-4 mb-2 bg-white border-2 border-gray-300"
+              @tap="$navigateTo(EventDetails, { props: { event } })">
               <Image col="0" :src="event.Club.LogoUrl" class="h-20 w-20 object-cover rounded-lg mr-2" />
               <StackLayout col="1">
-                <Label :text="event.Name" class="text-lg font-bold text-gray-500" />
+                <Label :text="event.Name" class="text-lg font-bold text-black" />
                 <Label :text="event.Club.Name" class="text-sm text-gray-500" />
                 <Label :text="formatDate(event.Start)" class="text-sm text-gray-500" />
                 <Label :text="'Pilots: ' + event.PilotCount" class="text-sm text-gray-500" />
@@ -80,15 +67,3 @@ onMounted(() => {
     </Page>
   </Frame>
 </template>
-
-<style>
-GridLayout {
-  color: #fff;
-  padding: 1rem;
-}
-
-ListView {
-  color: #fff;
-  border: 5px solid red;
-}
-</style>
