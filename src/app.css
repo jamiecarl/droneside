@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 ActionBar {
-  background-color: #65adf1;
+  background-color: #ac0c0c;
   color: white;
+}
+
+GridLayout {
+  background-color: #000;
 }
