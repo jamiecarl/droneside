@@ -30,7 +30,7 @@ onMounted(() => {
     <Page>
         <ActionBar>
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
-            <Label :text="'Round ' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
+            <Label :text="'Round #' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
         </ActionBar>
         <StackLayout>
             <Label v-if="loadingDetails" text="Loading round details..." class="text-center" />

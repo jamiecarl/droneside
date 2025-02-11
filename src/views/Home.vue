@@ -4,7 +4,8 @@ import {
   onMounted,
   $navigateTo,
 } from 'nativescript-vue';
-import EventDetails from './EventDetails.vue';
+import ClubEventHeader from '~/components/ClubEventHeader.vue';
+import EventDetails from '~/views/EventDetails.vue';
 import { EventType } from 'types/events.vue';
 
 const events = ref<EventType[]>([]);
@@ -50,16 +51,8 @@ onMounted(() => {
       <GridLayout class="text-white">
         <ListView v-if="!loading" :items="events">
           <template #default="{ item: event }" class="mb-2">
-            <GridLayout columns="auto, *" class="p-4 mb-2 bg-white border-2 border-gray-300"
-              @tap="$navigateTo(EventDetails, { props: { event } })">
-              <Image col="0" :src="event.Club.LogoUrl" class="h-20 w-20 object-cover rounded-lg mr-2" />
-              <StackLayout col="1">
-                <Label :text="event.Name" class="text-lg font-bold text-black" />
-                <Label :text="event.Club.Name" class="text-sm text-gray-500" />
-                <Label :text="formatDate(event.Start)" class="text-sm text-gray-500" />
-                <Label :text="'Pilots: ' + event.PilotCount" class="text-sm text-gray-500" />
-              </StackLayout>
-            </GridLayout>
+            <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
+              @tap="$navigateTo(EventDetails, { props: { event } })" />
           </template>
         </ListView>
         <Label v-else text="Loading events..." class="text-center text-gray-500" />

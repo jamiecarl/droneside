@@ -4,12 +4,13 @@ import {
   onMounted,
   getCurrentInstance
 } from 'nativescript-vue';
-import { EventRoundType, EventType, PilotType } from 'types/events.vue';
+import { RoundType, EventType, PilotType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
 import { TabViewItem } from '@nativescript/core';
+import ClubEventHeader from '../components/ClubEventHeader.vue';
 
-const rounds = ref<EventRoundType[]>([]);
+const rounds = ref<RoundType[]>([]);
 const pilots = ref<PilotType[]>([]);
 const props = defineProps<{ event: EventType }>();
 
@@ -60,15 +61,7 @@ onMounted(() => {
       <Label text="Event Rounds" class="font-bold text-lg" />
     </ActionBar>
     <GridLayout rows="auto, *" class="p-0">
-      <GridLayout row="0" columns="auto, *" class="bg-white p-4">
-        <Image col="0" :src="props.event.Club.LogoUrl" class="h-24 w-24 object-cover rounded-lg mr-3" />
-        <StackLayout col="1">
-          <Label :text="props.event.Name" class="text-lg font-bold text-black" />
-          <Label :text="props.event.Club.Name" class="text-sm text-gray-500" />
-          <Label :text="formatDate(props.event.Start)" class="text-sm text-gray-500" />
-          <Label :text="'Pilots: ' + props.event.PilotCount" class="text-sm text-gray-500" />
-        </StackLayout>
-      </GridLayout>
+      <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />
       <ContentView row="1" class="bg-black rounded-t-3xl">
         <TabView>
           <TabViewItem title="Rounds">
