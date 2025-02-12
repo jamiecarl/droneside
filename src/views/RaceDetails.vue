@@ -2,6 +2,7 @@
 import { defineProps, computed, ref, onMounted } from 'nativescript-vue';
 import type { PilotType, RaceDetailType, ResultSummaryType, LapType, EventType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
+import { GridLayout } from '@nativescript/core';
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
 
@@ -11,9 +12,19 @@ const podium = computed(() => {
     return sorted.slice(0, 3);
 });
 
+function getPilotPhotoURL(pilotId: string) {
+    const pilot = props.pilots.find((p) => p.ID === pilotId);
+    return pilot && pilot.PhotoURL ? pilot.PhotoURL : '~/assets/pilot.png';
+}
+
 function getPilotName(pilotId: string) {
     const pilot = props.pilots.find((p) => p.ID === pilotId);
-    return pilot ? pilot.Name : 'Unknown Pilot';
+    return pilot && pilot.Name ? pilot.Name : 'Unknown Pilot';
+}
+
+function getPilotCatchPhrase(pilotId: string) {
+    const pilot = props.pilots.find((p) => p.ID === pilotId);
+    return pilot && pilot.CatchPhrase ? pilot.CatchPhrase : '';
 }
 
 // New raw race detail (includes Laps array)
@@ -59,7 +70,7 @@ onMounted(() => {
             <!-- Fixed Podium Section -->
             <StackLayout row="0" class="p-3 bg-white">
                 <!-- Podium Section -->
-                <StackLayout class="mb-4">
+                <StackLayout>
                     <Label text="Podium" class="text-black text-center text-xl font-bold mb-2" />
                     <GridLayout columns="*,*,*" class="px-5 bg-transparent" row="0">
                         <StackLayout v-for="(result, idx) in podium" :key="result.ID" class="p-2" :col="idx">
@@ -79,24 +90,46 @@ onMounted(() => {
                     <StackLayout>
                         <StackLayout v-for="result in props.race.ResultSummaries" :key="result.ID"
                             class="mb-3 p-4 mb-2 bg-gray-800 rounded-md">
-                            <Label :text="getPilotName(result.Pilot)" class="text-white font-bold mb-1 text-lg" />
-                            <GridLayout rows="auto, auto, auto, auto, auto, auto" class="mb-1 bg-transparent">
-                                <Label row="0" :text="'Holeshot: ' + formatRaceTime(result.HoleshotTime || 'NA')"
-                                    class="text-white mr-2" />
-                                <Label row="1" :text="'Best Lap: ' + formatRaceTime(result.PbLapTime || 'NA')"
-                                    class="text-white mr-2" />
-                                <Label row="3" :text="'Race: ' + formatRaceTime(result.RaceTime || 'DNF')"
-                                    class="text-white mr-2" />
-                                <Label row="4" :text="'Position: ' + result.Position" class="text-white mr-2" />
-                                <Label row="5" :text="'Points: ' + result.Points" class="text-white" />
+                            <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
+                                <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
+                                    class="h-16 w-16 object-cover rounded-lg mr-2" />
+                                <GridLayout col="1" rows="auto, auto" class="bg-transparent">
+                                    <Label row="0" :text="getPilotName(result.Pilot)"
+                                        class="text-white font-bold text-lg align-top" />
+                                    <Label row="1" :text="getPilotCatchPhrase(result.Pilot)"
+                                        class="text-gray-500 font-bold text-xs  align-top" />
+                                </GridLayout>
+                                <GridLayout col="2" rows="auto, auto" class="bg-transparent">
+                                    <Label row="0" :text="result.Position" width="40" height="40"
+                                        class="text-xl font-bold text-white text-center bg-white rounded-md"
+                                        style="background-color: rgba(255,255,255,0.2);" />
+                                    <Label row="1" :text="result.Points + ' points'" class="text-white text-xs" />
+                                </GridLayout>
+                            </GridLayout>
+                            <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
+                                <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
+                                    <Label row="0" text="Holeshot:" class="text-gray-400 mr-2" />
+                                    <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
+                                    <Label row="2" text="Race:" class="text-gray-400 mr-2" />
+                                </GridLayout>
+                                <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
+                                    <Label row="0" :text="formatRaceTime(result.HoleshotTime || 'NA')"
+                                        class="text-yellow-400 mr-2" />
+                                    <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
+                                        class="text-green-500 mr-2" />
+                                    <Label row="2" :text="formatRaceTime(result.RaceTime || 'DNF')"
+                                        class="text-white mr-2" />
+                                </GridLayout>
                             </GridLayout>
                             <!-- Lap Details Table: now only visible if rawRace exists -->
                             <template v-if="rawRace">
                                 <GridLayout :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`"
                                     columns="*, *" class="bg-transparent">
                                     <!-- Header Row -->
-                                    <Label row="0" col="0" text="Lap" class="text-white font-bold" />
-                                    <Label row="0" col="1" text="Time" class="text-white font-bold" />
+                                    <Label row="0" col="0" text="Lap" class="text-white font-bold"
+                                        style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                                    <Label row="0" col="1" text="Time" class="text-white font-bold"
+                                        style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
                                     <!-- Data Rows -->
                                     <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
                                         <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber"

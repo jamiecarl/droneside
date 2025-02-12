@@ -39,6 +39,7 @@ export interface PilotType {
     ID: string;
     Name: string;
     PhotoURL: string | null;
+    CatchPhrase: string | null;
 }
 
 export interface ResultSummaryType {
