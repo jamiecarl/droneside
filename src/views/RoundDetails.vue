@@ -3,6 +3,7 @@ import { GridLayout } from '@nativescript/core';
 import { defineProps, ref, onMounted } from 'nativescript-vue';
 import { EventType, RoundType, RaceDetailType, PilotType, ChannelType } from 'types/events.vue';
 import RaceDetails from './RaceDetails.vue';
+import { formatRaceTime } from "../utils/formatRaceTime";
 
 const props = defineProps<{ event: EventType; round: RoundType; pilots: PilotType[]; channels: ChannelType[] }>();
 
@@ -54,11 +55,6 @@ function getPilotChannel(pilotId: string): string {
     return 'R1';
 }
 
-function formatRaceTime(time: string): string {
-    const num = parseFloat(time);
-    return isNaN(num) ? time : num.toFixed(2);
-}
-
 onMounted(() => {
     fetchRoundDetails(props.round.Event, props.round.ID);
 });
@@ -95,7 +91,7 @@ onMounted(() => {
                             <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
                                 :class="'channel ' + getPilotChannelClass(result.Pilot)" />
                             <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />
-                            <Label col="3" :text="result.RaceTime ? formatRaceTime(result.RaceTime) : 'DNF'"
+                            <Label col="3" :text="formatRaceTime(result.RaceTime || 'DNF')"
                                 class="text-white text-right" />
                         </GridLayout>
                     </StackLayout>
