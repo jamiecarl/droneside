@@ -69,10 +69,13 @@ onMounted(() => {
               <ListView v-if="!loadingRounds" :items="rounds" separatorColor="transparent" class="bg-transparent">
                 <template #default="{ item: round }">
                   <GridLayout columns="*, auto" class="px-4 py-2 border-b border-gray-400"
-                    @tap="$navigateTo(RoundDetails, { props: { round, pilots, channels: props.channels } })">
+                    @tap="$navigateTo(RoundDetails, { props: { event: props.event, round, pilots, channels: props.channels } })">
                     <StackLayout col="0">
                       <Label :text="'Round #' + round.RoundNumber" class="text-3xl py-3 text-white" />
                       <Label :text="round.EventType" class="text-xl text-red-800" />
+                      <!-- New Labels for Start and End -->
+                      <Label :text="'Start: ' + round.Start" class="text-white" />
+                      <Label :text="'End: ' + round.End" class="text-white" />
                     </StackLayout>
                   </GridLayout>
                 </template>
