@@ -50,3 +50,26 @@ GridLayout {
 .channel-R8 {
   background-color: aqua;
 }
+
+.medal {
+  border-radius: 25%;
+  background-color: white;
+  color: black;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  width: 128px;
+  height: 128px;
+}
+
+.medal-1 {
+  background-color: gold;
+}
+
+.medal-2 {
+  background-color: silver;
+}
+
+.medal-3 {
+  background-color: #cd7f32;
+}
