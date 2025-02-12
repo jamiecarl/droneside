@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 100">
+    <!-- Background Rounded Square for the "D" -->
+    <rect x="5" y="10" width="80" height="80" rx="15" ry="15" fill="#B0C4DE"/>
+    
+     <!-- Letter D -->
+  <text x="17" y="80" font-family="Arial" font-size="80" fill="#1E3A5F" font-weight="bold">D</text>
+
+    <!-- FPV Drone Silhouette in Red, positioned within the box -->
+    <g transform="translate(60,34) scale(0.4)">
+        <!-- Arms -->
+        <line x1="-40" y1="0" x2="40" y2="0" stroke="#FF0000" stroke-width="6"/>
+        <line x1="0" y1="-40" x2="0" y2="40" stroke="#FF0000" stroke-width="6"/>
+        
+        <!-- Motors (Propellers) -->
+        <circle cx="-44" cy="0" r="4" fill="#FF0000"/>
+        <circle cx="44" cy="0" r="4" fill="#FF0000"/>
+        <circle cx="0" cy="-44" r="4" fill="#FF0000"/>
+        <circle cx="0" cy="44" r="4" fill="#FF0000"/>
+
+        <!-- Drone Body -->
+        <rect x="-8" y="-8" width="16" height="16" fill="#FF0000"/>
+    </g>
+
+    <!-- "roneSide" Text to the Right of the Box -->
+    <text x="90" y="80" font-family="Arial, sans-serif" font-size="40" fill="#1E3A5F">roneSide</text>
+</svg>
