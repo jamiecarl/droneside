@@ -1,0 +1,23 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Square with Rounded Corners -->
+  <rect x="5" y="5" width="190" height="190" rx="20" ry="20" fill="#B0C4DE"/>
+
+  <!-- Letter D in Dark Blue -->
+  <text x="56" y="146" font-family="Arial" font-size="120" fill="#1E3A5F" font-weight="bold">D</text>
+
+  <!-- FPV Drone Silhouette in Red -->
+  <g transform="translate(120,70) scale(0.5)" fill="red">
+    <!-- Arms -->
+    <line x1="-40" y1="0" x2="40" y2="0" stroke="red" stroke-width="6"/>
+    <line x1="0" y1="-40" x2="0" y2="40" stroke="red" stroke-width="6"/>
+
+    <!-- Motors (Propellers) -->
+    <circle cx="-40" cy="0" r="8" fill="red"/>
+    <circle cx="40" cy="0" r="8" fill="red"/>
+    <circle cx="0" cy="-40" r="8" fill="red"/>
+    <circle cx="0" cy="40" r="8" fill="red"/>
+
+    <!-- Drone Body -->
+    <rect x="-10" y="-10" width="20" height="20" fill="red"/>
+  </g>
+</svg>
