@@ -58,53 +58,61 @@ onMounted(() => {
             <!-- Updated header label with event and round details -->
             <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
         </ActionBar>
-        <ScrollView>
-            <StackLayout class="p-3 bg-black">
+        <!-- Parent container with fixed podium (row 0) and scrollable pilots (row 1) -->
+        <GridLayout rows="auto, *">
+            <!-- Fixed Podium Section -->
+            <StackLayout row="0" class="p-3 bg-white">
                 <!-- Podium Section -->
                 <StackLayout class="mb-4">
-                    <Label text="Podium" class="text-white text-xl font-bold mb-2" />
-                    <GridLayout columns="*,*,*" class="px-5" row="0">
+                    <Label text="Podium" class="text-black text-center text-xl font-bold mb-2" />
+                    <GridLayout columns="*,*,*" class="px-5 bg-transparent" row="0">
                         <StackLayout v-for="(result, idx) in podium" :key="result.ID" class="p-2" :col="idx">
                             <Label :text="result.Position" class="text-white text-center mt-2 medal"
                                 :class="'medal-' + result.Position" />
-                            <Label :text="getPilotName(result.Pilot)" class="text-white text-center mt-2" />
+                            <Label :text="getPilotName(result.Pilot)" class="text-black text-center mt-2" />
                             <Label :text="formatRaceTime(result.RaceTime || 'DNF')"
-                                class="text-white text-center mt-1" />
+                                class="text-black text-center mt-1" />
                         </StackLayout>
                     </GridLayout>
                 </StackLayout>
-                <!-- Detailed Pilot Overview Stats Section -->
-                <StackLayout>
-                    <Label text="All Pilots" class="text-white text-xl font-bold mb-2" />
-                    <StackLayout v-for="result in props.race.ResultSummaries" :key="result.ID"
-                        class="mb-3 p-2 bg-gray-800 rounded">
-                        <Label :text="getPilotName(result.Pilot)" class="text-white font-bold mb-1" />
-                        <GridLayout columns="auto, auto, auto, auto, auto, auto" class="mb-1">
-                            <Label col="0" :text="'Holeshot: ' + formatRaceTime(result.HoleshotTime)"
-                                class="text-white mr-2" />
-                            <Label col="1" :text="'PbLap: ' + formatRaceTime(result.PbLapTime)"
-                                class="text-white mr-2" />
-                            <Label col="2" :text="'PbCount: ' + result.PbLapCount" class="text-white mr-2" />
-                            <Label col="3" :text="'Race: ' + formatRaceTime(result.RaceTime)" class="text-white mr-2" />
-                            <Label col="4" :text="'Pos: ' + result.Position" class="text-white mr-2" />
-                            <Label col="5" :text="'Points: ' + result.Points" class="text-white" />
-                        </GridLayout>
-                        <!-- Lap Details Table: now only visible if rawRace exists -->
-                        <template v-if="rawRace">
-                            <GridLayout columns="auto, auto, auto" class="mb-2">
-                                <Label col="0" text="Lap" class="text-white font-bold" />
-                                <Label col="1" text="Pos" class="text-white font-bold" />
-                                <Label col="2" text="Time" class="text-white font-bold" />
+            </StackLayout>
+            <!-- Scrollable All Pilots Section -->
+            <ScrollView row="1">
+                <StackLayout class="p-3 bg-transparent">
+                    <!-- Detailed Pilot Overview Stats Section -->
+                    <StackLayout>
+                        <StackLayout v-for="result in props.race.ResultSummaries" :key="result.ID"
+                            class="mb-3 p-4 mb-2 bg-gray-800 rounded-md">
+                            <Label :text="getPilotName(result.Pilot)" class="text-white font-bold mb-1 text-lg" />
+                            <GridLayout rows="auto, auto, auto, auto, auto, auto" class="mb-1 bg-transparent">
+                                <Label row="0" :text="'Holeshot: ' + formatRaceTime(result.HoleshotTime)"
+                                    class="text-white mr-2" />
+                                <Label row="1"
+                                    :text="'Best Lap: ' + formatRaceTime(result.PbLapTime) + ' (' + result.PbLapCount + ')'"
+                                    class="text-white mr-2" />
+                                <Label row="3" :text="'Race: ' + formatRaceTime(result.RaceTime)" class="text-white mr-2" />
+                                <Label row="4" :text="'Position: ' + result.Position" class="text-white mr-2" />
+                                <Label row="5" :text="'Points: ' + result.Points" class="text-white" />
                             </GridLayout>
-                            <GridLayout v-for="lap in getLapsForPilot(result.Pilot)" :key="lap.ID"
-                                columns="auto, auto" class="mb-1">
-                                <Label col="0" :text="lap.LapNumber" class="text-white" />
-                                <Label col="2" :text="lap.LengthSeconds.toFixed(2)" class="text-white" />
-                            </GridLayout>
-                        </template>
+                            <!-- Lap Details Table: now only visible if rawRace exists -->
+                            <template v-if="rawRace">
+                                <GridLayout :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`"
+                                    columns="*, *" class="bg-transparent">
+                                    <!-- Header Row -->
+                                    <Label row="0" col="0" text="Lap" class="text-white font-bold" />
+                                    <Label row="0" col="1" text="Time" class="text-white font-bold" />
+                                    <!-- Data Rows -->
+                                    <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
+                                        <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" class="text-white" />
+                                        <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
+                                            class="text-white" />
+                                    </template>
+                                </GridLayout>
+                            </template>
+                        </StackLayout>
                     </StackLayout>
                 </StackLayout>
-            </StackLayout>
-        </ScrollView>
+            </ScrollView>
+        </GridLayout>
     </Page>
 </template>

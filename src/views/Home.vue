@@ -7,6 +7,7 @@ import {
 import ClubEventHeader from '~/components/ClubEventHeader.vue';
 import EventDetails from '~/views/EventDetails.vue';
 import { EventType, ChannelType } from 'types/events.vue';
+import { GridLayout, StackLayout } from '@nativescript/core';
 
 const events = ref<EventType[]>([]);
 const channels = ref<ChannelType[]>([]);
@@ -61,11 +62,13 @@ onMounted(() => {
         <Label text="DroneSide" class="font-bold text-lg" />
       </ActionBar>
 
-      <GridLayout class="text-white">
+      <GridLayout>
         <ListView v-if="!loading" :items="events">
-          <template #default="{ item: event }" class="mb-2">
-            <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
-              @tap="$navigateTo(EventDetails, { props: { event, channels } })" />
+          <template #default="{ item: event }">
+            <GridLayout class="px-3">
+              <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
+                @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-3 rounded-md" />
+            </GridLayout>
           </template>
         </ListView>
         <Label v-else text="Loading events..." class="text-center text-gray-500" />

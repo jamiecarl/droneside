@@ -20,35 +20,67 @@ GridLayout {
 }
 
 .channel-R1 {
-  background-color: red;
+  background-color: #FF0000;
 }
 
 .channel-R2 {
-  background-color: blue;
+  background-color: #0000FF;
 }
 
 .channel-R3 {
-  background-color: greenyellow;
+  background-color: #00FF00;
 }
 
 .channel-R4 {
-  background-color: hotpink;
+  background-color: #FFFF00;
 }
 
 .channel-R5 {
-  background-color: orange;
+  background-color: #FFA500;
 }
 
 .channel-R6 {
-  background-color: white;
+  background-color: #800080;
 }
 
 .channel-R7 {
-  background-color: orange;
+  background-color: #00FFFF;
 }
 
 .channel-R8 {
-  background-color: aqua;
+  background-color: #FF00FF;
+}
+
+.channel-L1 {
+  background-color: #8B0000;
+}
+
+.channel-L2 {
+  background-color: #00008B;
+}
+
+.channel-L3 {
+  background-color: #006400;
+}
+
+.channel-L4 {
+  background-color: #8C8C00;
+}
+
+.channel-L5 {
+  background-color: #FF8C00;
+}
+
+.channel-L6 {
+  background-color: #4B0082;
+}
+
+.channel-L7 {
+  background-color: #008B8B;
+}
+
+.channel-L8 {
+  background-color: #8B008B;
 }
 
 .medal {

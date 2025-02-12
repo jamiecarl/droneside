@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { GridLayout } from '@nativescript/core';
 import { defineProps, ref, onMounted } from 'nativescript-vue';
-import { RoundType, RaceDetailType, PilotType, ChannelType } from 'types/events.vue';
+import { EventType, RoundType, RaceDetailType, PilotType, ChannelType } from 'types/events.vue';
 import RaceDetails from './RaceDetails.vue';
 
-const props = defineProps<{ round: RoundType; pilots: PilotType[]; channels: ChannelType[] }>();
+const props = defineProps<{ event: EventType; round: RoundType; pilots: PilotType[]; channels: ChannelType[] }>();
 
 const raceDetails = ref<RaceDetailType[]>([]);
 const loadingDetails = ref(true);
@@ -70,30 +70,37 @@ onMounted(() => {
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <Label :text="'Round ' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
         </ActionBar>
-        <ScrollView v-if="!loadingDetails">
-            <StackLayout class="p-3 bg-black">
-                <!-- Outer container now has a tap to navigate to RaceDetails view -->
-                <StackLayout v-for="(race, index) in raceDetails" :key="race.ID" class="p-4 my-2 bg-gray-800 rounded-md"
-                    @tap="$navigateTo(RaceDetails, { props: { race, pilots: props.pilots, round: props.round } })">
-                    <!-- Changed race header to use grid layout for race number and target laps -->
-                    <GridLayout columns="*, auto" class="mb-2 bg-transparent">
-                        <Label :text="'Race #' + race.RaceNumber" class="text-white text-lg font-bold" />
-                        <Label col="1" :text="'Laps: ' + race.TargetLaps"
-                            class="text-white text-lg font-bold text-right" />
-                    </GridLayout>
-                    <!-- Updated race results grid -->
-                    <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
-                        columns="auto, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
-                        <Label col="0" :text="result.Position" class="text-white mr-1" />
-                        <!-- New red box column with dynamic CSS class -->
-                        <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
-                            :class="'channel ' + getPilotChannelClass(result.Pilot)" />
-                        <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />
-                        <Label col="3" :text="result.RaceTime ? formatRaceTime(result.RaceTime) : 'DNF'"
-                            class="text-white text-right" />
-                    </GridLayout>
-                </StackLayout>
+        <!-- Wrap content in a GridLayout with fixed header -->
+        <GridLayout rows="auto, *">
+            <!-- Fixed header section -->
+            <StackLayout row="0" class="p-3 bg-white">
+                <Label :text="props.event.Name" class="text-black font-bold text-lg" />
+                <Label :text="'Round #' + round.RoundNumber" class="text-black font-bold text-lg" />
+                <Label :text="round.EventType" class="text-black text-base" />
             </StackLayout>
-        </ScrollView>
+            <!-- Scrollable content -->
+            <ScrollView row="1" v-if="!loadingDetails">
+                <StackLayout class="p-3 bg-black">
+                    <StackLayout v-for="(race, index) in raceDetails" :key="race.ID"
+                        class="p-4 my-2 bg-gray-800 rounded-md"
+                        @tap="$navigateTo(RaceDetails, { props: { race, pilots: props.pilots, round: props.round } })">
+                        <GridLayout columns="*, auto" class="mb-2 bg-transparent">
+                            <Label :text="'Race #' + race.RaceNumber" class="text-white text-lg font-bold" />
+                            <Label col="1" :text="'Laps: ' + race.TargetLaps"
+                                class="text-white text-lg font-bold text-right" />
+                        </GridLayout>
+                        <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
+                            columns="auto, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
+                            <Label col="0" :text="result.Position" class="text-white mr-1" />
+                            <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
+                                :class="'channel ' + getPilotChannelClass(result.Pilot)" />
+                            <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />
+                            <Label col="3" :text="result.RaceTime ? formatRaceTime(result.RaceTime) : 'DNF'"
+                                class="text-white text-right" />
+                        </GridLayout>
+                    </StackLayout>
+                </StackLayout>
+            </ScrollView>
+        </GridLayout>
     </Page>
 </template>
