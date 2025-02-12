@@ -4,7 +4,7 @@ import {
   onMounted,
   getCurrentInstance
 } from 'nativescript-vue';
-import { RoundType, EventType, PilotType } from 'types/events.vue';
+import { RoundType, EventType, PilotType, ChannelType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
 import { TabViewItem } from '@nativescript/core';
@@ -12,7 +12,7 @@ import ClubEventHeader from '../components/ClubEventHeader.vue';
 
 const rounds = ref<RoundType[]>([]);
 const pilots = ref<PilotType[]>([]);
-const props = defineProps<{ event: EventType }>();
+const props = defineProps<{ event: EventType; channels: ChannelType[] }>();
 
 const loadingRounds = ref(true);
 const loadingPilots = ref(true);
@@ -69,7 +69,7 @@ onMounted(() => {
               <ListView v-if="!loadingRounds" :items="rounds" separatorColor="transparent" class="bg-transparent">
                 <template #default="{ item: round }">
                   <GridLayout columns="*, auto" class="px-4 py-2 border-b border-gray-400"
-                    @tap="$navigateTo(RoundDetails, { props: { round } })">
+                    @tap="$navigateTo(RoundDetails, { props: { round, pilots, channels: props.channels } })">
                     <StackLayout col="0">
                       <Label :text="'Round #' + round.RoundNumber" class="text-3xl py-3 text-white" />
                       <Label :text="round.EventType" class="text-xl text-red-800" />
@@ -86,18 +86,9 @@ onMounted(() => {
                 <template #default="{ item: pilot }">
                   <GridLayout columns="auto, *" class="px-4 py-2 border-b border-gray-400"
                     @tap="$navigateTo(PilotDetails, { props: { pilot } })">
-                    <Image
-                      v-if="pilot.PhotoURL"
-                      :src="pilot.PhotoURL"
-                      col="0"
-                      class="h-16 w-16 object-cover rounded-lg mr-2"
-                    />
-                    <Image
-                      v-else
-                      src="~/assets/pilot.png"
-                      col="0"
-                      class="h-16 w-16 object-cover rounded-lg mr-2"
-                    />
+                    <Image v-if="pilot.PhotoURL" :src="pilot.PhotoURL" col="0"
+                      class="h-16 w-16 object-cover rounded-lg mr-2" />
+                    <Image v-else src="~/assets/pilot.png" col="0" class="h-16 w-16 object-cover rounded-lg mr-2" />
                     <Label col="1" :text="pilot.Name" class="text-3xl py-3 text-white" />
                   </GridLayout>
                 </template>

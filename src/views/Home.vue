@@ -6,9 +6,10 @@ import {
 } from 'nativescript-vue';
 import ClubEventHeader from '~/components/ClubEventHeader.vue';
 import EventDetails from '~/views/EventDetails.vue';
-import { EventType } from 'types/events.vue';
+import { EventType, ChannelType } from 'types/events.vue';
 
 const events = ref<EventType[]>([]);
+const channels = ref<ChannelType[]>([]);
 const loading = ref(true);
 
 async function fetchEvents() {
@@ -30,6 +31,17 @@ async function fetchEvents() {
   }
 }
 
+async function fetchChannels() {
+  try {
+    console.log('Fetching channels...');
+    const response = await fetch('https://fpvtrackside.com/api/public/channels');
+    const data = await response.json();
+    channels.value = data;
+  } catch (error) {
+    console.error('Error fetching channels:', error);
+  }
+}
+
 function formatDate(dateString: string): string {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
@@ -38,6 +50,7 @@ function formatDate(dateString: string): string {
 onMounted(() => {
   console.log('Home mounted');
   fetchEvents();
+  fetchChannels();
 });
 </script>
 
@@ -52,7 +65,7 @@ onMounted(() => {
         <ListView v-if="!loading" :items="events">
           <template #default="{ item: event }" class="mb-2">
             <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
-              @tap="$navigateTo(EventDetails, { props: { event } })" />
+              @tap="$navigateTo(EventDetails, { props: { event, channels } })" />
           </template>
         </ListView>
         <Label v-else text="Loading events..." class="text-center text-gray-500" />
