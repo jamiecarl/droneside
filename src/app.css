@@ -10,3 +10,43 @@ ActionBar {
 GridLayout {
   background-color: #000;
 }
+
+.channel {
+  border-radius: 8px;
+  color: black;
+  font-size: 8px;
+  text-align: center;
+  background-color: azure;
+}
+
+.channel-R1 {
+  background-color: red;
+}
+
+.channel-R2 {
+  background-color: blue;
+}
+
+.channel-R3 {
+  background-color: greenyellow;
+}
+
+.channel-R4 {
+  background-color: hotpink;
+}
+
+.channel-R5 {
+  background-color: orange;
+}
+
+.channel-R6 {
+  background-color: white;
+}
+
+.channel-R7 {
+  background-color: orange;
+}
+
+.channel-R8 {
+  background-color: aqua;
+}
