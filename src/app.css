@@ -109,3 +109,12 @@ GridLayout {
 .medal-3 {
   background-color: #cd7f32;
 }
+
+.medal-4,
+.medal-5,
+.medal-6,
+.medal-7,
+.medal-8 {
+  background-color: transparent;
+  color: white;
+}
