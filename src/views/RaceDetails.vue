@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { defineProps, computed, ref, onMounted } from 'nativescript-vue';
-import type { PilotType, RaceDetailType, ResultSummaryType, LapType, EventType, RoundType } from 'types/events.vue';
+import type { PilotType, RawRaceDataType, RaceDetailType, LapType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
 import { GridLayout } from '@nativescript/core';
 import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
@@ -35,7 +35,7 @@ function getPilotCatchPhrase(pilotId: string) {
 }
 
 // New raw race detail (includes Laps array)
-const rawRace = ref<(RaceDetailType & { Laps: LapType[] }) | null>(null);
+const rawRace = ref<(RawRaceDataType & { Laps: LapType[] }) | null>(null);
 
 async function fetchRawRaceDetail() {
     try {
@@ -103,7 +103,7 @@ onMounted(() => {
                     <!-- Detailed Pilot Overview Stats Section -->
                     <StackLayout>
                         <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
-                            class="mb-3 p-4 mb-2 bg-gray-800 rounded-md">
+                            class="p-4 my-2 bg-gray-800 rounded-md">
                             <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
                                 <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
                                     class="h-16 w-16 object-cover rounded-lg mr-2" />
