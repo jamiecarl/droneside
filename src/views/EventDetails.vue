@@ -35,7 +35,7 @@ async function fetchPilots(eventId: string) {
     console.log('Fetching pilots for event:', eventId);
     const response = await fetch(`https://fpvtrackside.com/api/public/pilots/eventId/${eventId}`);
     const data = await response.json();
-    pilots.value = data;
+    pilots.value = data.sort((a: PilotType, b: PilotType) => a.Name.localeCompare(b.Name));
   } catch (error) {
     console.error('Error fetching pilots:', error);
   } finally {
