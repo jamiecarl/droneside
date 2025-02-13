@@ -2,13 +2,15 @@
 import { computed } from 'nativescript-vue';
 import { GridLayout, StackLayout } from '@nativescript/core';
 import { defineProps, ref, onMounted } from 'nativescript-vue';
-import type { EventType, PilotType, RoundType } from 'types/events.vue';
+import type { EventType, PilotType, RoundType, RaceDetailType, LapType } from 'types/events.vue';
 import { formatRaceTime } from '~/utils/formatRaceTime';
+import { text } from 'stream/consumers';
 
 const props = defineProps<{ pilot: PilotType, event: EventType }>();
 const loadingDetails = ref(true);
 const rounds = ref<{ [key: string]: RoundType }>({});
 const raceSummaries = ref<{ [key: string]: any }>({});
+const rawRaceDetails = ref<{ [key: string]: (RaceDetailType & { Laps: LapType[] }) | null }>({});
 
 const raceSummariesCount = computed(() => Object.keys(raceSummaries.value).length);
 
@@ -45,13 +47,41 @@ async function fetchPilotRaces(eventId: string, pilotId: string) {
   }
 }
 
-onMounted(() => {
-  loadingDetails.value = true;
+async function fetchRawRaceDetail(eventId: string, raceId: string) {
+  try {
+    const response = await fetch(`https://fpvtrackside.com/api/public/races/eventId/${eventId}/raceId/${raceId}/raw/1`);
+    const data = await response.json();
+    rawRaceDetails.value[raceId] = data;
+  } catch (error) {
+    console.error('Error fetching raw race detail:', error);
+  }
+}
+
+function getLapsForPilot(raceId: string, pilotId: string): LapType[] {
+  if (!rawRaceDetails.value) return [];
+  const rawRace = rawRaceDetails.value[raceId];
+  if (!rawRace || !rawRace.Laps || !rawRace.Detections) return [];
+  const pilotDetectionIds = rawRace.Detections
+    .filter(detection => detection.Pilot === pilotId && detection.Valid !== false && detection.LapNumber > 0)
+    .map(detection => detection.ID);
+  return rawRace.Laps
+    .filter(lap => pilotDetectionIds.includes(lap.Detection))
+    .sort((a, b) => a.LapNumber - b.LapNumber);
+}
+
+function refreshData() {
   fetchRounds(props.event.ID).then(() => {
     fetchPilotRaces(props.event.ID, props.pilot.ID).then(() => {
       loadingDetails.value = false;
+      const raceIds = Object.values(raceSummaries.value).map((summary: any) => summary.Race);
+      Promise.all(raceIds.map(raceId => fetchRawRaceDetail(props.event.ID, raceId)));
     });
   });
+}
+
+onMounted(() => {
+  loadingDetails.value = true;
+  refreshData();
 });
 </script>
 
@@ -60,6 +90,7 @@ onMounted(() => {
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
       <Label text="Pilot Details" class="font-bold text-lg" />
+      <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
     </ActionBar>
     <GridLayout rows="auto, *">
       <!-- Fixed header section -->
@@ -84,13 +115,14 @@ onMounted(() => {
                 <StackLayout>
                   <Label :text="'Round #' + round.RoundNumber" class="text-white text-lg font-bold" />
                   <GridLayout columns="auto, *, auto" class="bg-transparent mb-5 text-xs">
-                    <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
+                    <GridLayout col="0" rows="auto, *, auto, auto" class="bg-transparent">
                       <Label v-if="round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
                         class="text-gray-400 mr-2" />
                       <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
                       <Label v-if="round.EventType !== 'TimeTrial'" row="2" text="Race:" class="text-gray-400 mr-2" />
+                      <Label row="3" text="Laps:" class="text-gray-400 mr-2" />
                     </GridLayout>
-                    <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
+                    <GridLayout col="1" rows="auto, *, auto, auto" class="bg-transparent">
                       <Label v-if="round.EventType !== 'TimeTrial'" row="0"
                         :text="formatRaceTime(raceSummaries[round.ID]?.HoleshotTime || 'NA')"
                         class="text-yellow-400 mr-2" />
@@ -98,7 +130,8 @@ onMounted(() => {
                         class="text-green-500 mr-2" />
                       <Label v-if="round.EventType !== 'TimeTrial'" row="2"
                         :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || 'DNF')" class="text-white mr-2" />
-                    </GridLayout>
+                      <Label row="3" :text="raceSummaries[round.ID]?.LapCount" class="text-white mr-2" />
+                    </GridLayout>[]
                   </GridLayout>
                 </StackLayout>
                 <GridLayout col="2" rows="auto, auto" class="bg-transparent">
@@ -110,6 +143,24 @@ onMounted(() => {
                     :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
                 </GridLayout>
               </GridLayout>
+              <GridLayout v-if="getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID).length > 0"
+                :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *"
+                class="bg-transparent">
+                <!-- Header Row -->
+                <Label row="0" col="0" text="Lap" class="text-white font-bold"
+                  style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                <Label row="0" col="1" text="Time" class="text-white font-bold"
+                  style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                <!-- Data Rows -->
+                <template v-for="(lap, index) in getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID)"
+                  :key="lap.ID">
+                  <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" class="text-white" />
+                  <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)" class="text-white" />
+                </template>
+              </GridLayout>
+              <Label v-else-if="!raceSummaries[round.ID]?.Position" class="text-white text-center">No data
+                available</Label>
+              <Label v-else class="text-white text-center">Loading lap times...</Label>
             </StackLayout>
           </StackLayout>
         </StackLayout>
