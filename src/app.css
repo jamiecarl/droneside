@@ -94,6 +94,10 @@ GridLayout {
   height: 128px;
 }
 
+.medal-0 {
+  background-color: #FFFF00;
+}
+
 .medal-1 {
   background-color: gold;
 }
