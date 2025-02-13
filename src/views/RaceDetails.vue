@@ -78,6 +78,7 @@ onMounted(() => {
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <!-- Updated header label with event and round details -->
             <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
+            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRawRaceDetail" />
         </ActionBar>
         <!-- Parent container with fixed podium (row 0) and scrollable pilots (row 1) -->
         <GridLayout rows="auto, *">
