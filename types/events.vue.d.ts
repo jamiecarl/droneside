@@ -38,6 +38,8 @@ export interface RoundType {
 export interface PilotType {
     ID: string;
     Name: string;
+    FirstName: string;
+    LastName: string;
     PhotoURL: string | null;
     CatchPhrase: string | null;
 }

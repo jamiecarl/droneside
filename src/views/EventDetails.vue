@@ -7,7 +7,7 @@ import {
 import { RoundType, EventType, PilotType, ChannelType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
-import { GridLayout, TabViewItem } from '@nativescript/core';
+import { GridLayout, StackLayout, TabViewItem } from '@nativescript/core';
 import ClubEventHeader from '../components/ClubEventHeader.vue';
 
 const rounds = ref<RoundType[]>([]);
@@ -59,7 +59,8 @@ onMounted(() => {
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
       <Label text="Event Rounds" class="font-bold text-lg" />
-      <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRounds(props.event.ID); fetchPilots(props.event.ID);" />
+      <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
+        @tap="fetchRounds(props.event.ID); fetchPilots(props.event.ID);" />
     </ActionBar>
     <GridLayout rows="auto, *" class="p-0">
       <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />
@@ -67,33 +68,37 @@ onMounted(() => {
         <TabView>
           <TabViewItem title="Rounds">
             <GridLayout>
-              <ListView v-if="!loadingRounds" :items="rounds" separatorColor="transparent" class="bg-transparent">
-                <template #default="{ item: round }">
-                  <GridLayout class="p-3 bg-transparent">
-                    <GridLayout columns="*, auto" class="p-3 bg-gray-800 rounded-md"
-                      @tap="$navigateTo(RoundDetails, { props: { event: props.event, round, pilots, channels: props.channels } })">
-                      <Label col="0" :text="'Round #' + round.RoundNumber" class="text-3xl py-3 text-white" />
-                      <Label col="1" :text="round.EventType" class="text-xl text-red-500 text-right" />
-                    </GridLayout>
+              <ScrollView row="1" v-if="!loadingRounds">
+                <StackLayout class="p-3 bg-black">
+                  <GridLayout v-for="(round, index) in rounds" :key="round.ID" class="p-4 my-2 bg-gray-800 rounded-md"
+                    columns="*, auto"
+                    @tap="$navigateTo(RoundDetails, { props: { event: props.event, round, pilots, channels: props.channels } })">
+                    <Label col="0" :text="'Round #' + round.RoundNumber" class="text-3xl text-white" />
+                    <Label col="1" :text="round.EventType" class="text-xl text-red-500 text-right" />
                   </GridLayout>
-                </template>
-              </ListView>
+                </StackLayout>
+              </ScrollView>
               <Label v-else text="Loading rounds..." class="text-center text-white" />
             </GridLayout>
           </TabViewItem>
           <TabViewItem title="Pilots">
             <GridLayout>
-              <ListView v-if="!loadingPilots" :items="pilots" separatorColor="transparent" class="bg-transparent">
-                <template #default="{ item: pilot }">
-                  <GridLayout columns="auto, *" class="px-4 py-2 border-b border-gray-400"
-                    @tap="$navigateTo(PilotDetails, { props: { pilot } })">
+              <ScrollView row="1" v-if="!loadingPilots">
+                <StackLayout class="p-3 bg-black">
+                  <GridLayout v-for="(pilot, index) in pilots" :key="pilot.ID" class="p-4 my-2 bg-gray-800 rounded-md"
+                    columns="auto, *" @tap="$navigateTo(PilotDetails, { props: { pilot, event: props.event } })">
                     <Image v-if="pilot.PhotoURL" :src="pilot.PhotoURL" col="0"
-                      class="h-16 w-16 object-cover rounded-lg mr-2" />
-                    <Image v-else src="~/assets/pilot.png" col="0" class="h-16 w-16 object-cover rounded-lg mr-2" />
-                    <Label col="1" :text="pilot.Name" class="text-3xl py-3 text-white" />
+                      class="h-16 w-16 object-cover rounded-lg mr-3" />
+                    <Image v-else src="~/assets/pilot.png" col="0" class="h-16 w-16 object-cover rounded-lg mr-3" />
+                    <StackLayout col="1" class="bg-transparent">
+                      <Label :text="pilot.Name" class="text-2xl text-white" />
+                      <Label :text="pilot.FirstName + ' ' + pilot.LastName" v-if="pilot.FirstName || pilot.LastName"
+                        class="text-gray-500" />
+                      <Label :test="pilot.CatchPhrase" v-if="pilot.CatchPhrase" class="text-gray-300" />
+                    </StackLayout>
                   </GridLayout>
-                </template>
-              </ListView>
+                </StackLayout>
+              </ScrollView>
               <Label v-else text="Loading pilots..." class="text-center text-white" />
             </GridLayout>
           </TabViewItem>
