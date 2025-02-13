@@ -60,6 +60,7 @@ onMounted(() => {
     <Page>
       <ActionBar>
         <Label text="DroneSide" class="font-bold text-lg" />
+        <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchEvents" />
       </ActionBar>
 
       <GridLayout>

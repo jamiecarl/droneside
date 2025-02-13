@@ -59,6 +59,7 @@ onMounted(() => {
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
       <Label text="Event Rounds" class="font-bold text-lg" />
+      <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRounds(props.event.ID); fetchPilots(props.event.ID);" />
     </ActionBar>
     <GridLayout rows="auto, *" class="p-0">
       <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />

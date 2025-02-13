@@ -75,6 +75,7 @@ onMounted(() => {
         <ActionBar>
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <Label :text="'Round ' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
+            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRoundDetails(props.round.Event, props.round.ID)" />
         </ActionBar>
         <!-- Wrap content in a GridLayout with fixed header -->
         <GridLayout rows="auto, *">
