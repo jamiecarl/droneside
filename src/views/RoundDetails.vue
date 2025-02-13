@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { GridLayout } from '@nativescript/core';
-import { defineProps, ref, onMounted } from 'nativescript-vue';
+import { defineProps, ref, onMounted, computed } from 'nativescript-vue';
 import { EventType, RoundType, RaceDetailType, PilotType, ChannelType } from 'types/events.vue';
 import RaceDetails from './RaceDetails.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
+import { sortResultByPbTime, sortResultsByPosition } from '../utils/sortResults';
 
 const props = defineProps<{ event: EventType; round: RoundType; pilots: PilotType[]; channels: ChannelType[] }>();
 
@@ -19,7 +20,9 @@ async function fetchRoundDetails(eventId: string, roundId: string) {
         data.sort((a: RaceDetailType, b: RaceDetailType) => a.RaceNumber - b.RaceNumber);
         // Sort each race's ResultSummaries by Position numerically
         data.forEach((race: RaceDetailType) => {
-            race.ResultSummaries.sort((a, b) => Number(a.Position) - Number(b.Position));
+            race.ResultSummaries = props.round.EventType === 'TimeTrial'
+                ? sortResultByPbTime(race.ResultSummaries)
+                : sortResultsByPosition(race.ResultSummaries);
         });
         raceDetails.value = data;
     } catch (error) {
@@ -93,8 +96,8 @@ onMounted(() => {
                                 class="text-white text-lg font-bold text-right" />
                         </GridLayout>
                         <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
-                            columns="auto, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
-                            <Label col="0" :text="result.Position" class="text-white mr-1" />
+                            columns="24, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
+                            <Label col="0" :text="result.Position || '-'" class="text-white text-center mr-1" />
                             <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
                                 :class="'channel ' + getPilotChannelClass(result.Pilot)" />
                             <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />

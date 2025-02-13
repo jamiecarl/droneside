@@ -3,20 +3,20 @@ import { defineProps, computed, ref, onMounted } from 'nativescript-vue';
 import type { PilotType, RaceDetailType, ResultSummaryType, LapType, EventType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
 import { GridLayout } from '@nativescript/core';
+import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
 
 // Compute podium: sort results by numeric position and take top 3.
 const podium = computed(() => {
     if (props.round.EventType === 'TimeTrial') {
-        const sorted = [...props.race.ResultSummaries].sort((a, b) => parseFloat(a.PbLapTime || "999") - parseFloat(b.PbLapTime || "999"));
-        sorted.forEach((result, index) => {
-            result.Position = (index + 1).toString();
-        });
-        return sorted.slice(0, 3);
+        return sortResultByPbTime([...props.race.ResultSummaries]).slice(0, 3);
     }
-    const sorted = [...props.race.ResultSummaries].sort((a, b) => Number(a.Position) - Number(b.Position));
-    return sorted.slice(0, 3);
+    return sortResultsByPosition([...props.race.ResultSummaries]).slice(0, 3);
+});
+
+const sortedResultSummaries = computed(() => {
+    return sortResultsByPosition([...props.race.ResultSummaries]);
 });
 
 function getPilotPhotoURL(pilotId: string) {
@@ -86,10 +86,10 @@ onMounted(() => {
                 <!-- Podium Section -->
                 <StackLayout>
                     <Label text="Podium" class="text-black text-center text-xl font-bold mb-2" />
-                    <GridLayout columns="*,*,*" class="px-5 bg-transparent" row="0">
-                        <StackLayout v-for="(result, idx) in podium" :key="result.ID" class="p-2" :col="idx">
-                            <Label :text="result.Position" class="text-white text-center mt-2 medal"
-                                :class="'medal-' + result.Position" />
+                    <GridLayout columns="*,auto,*" class="bg-transparent" row="0">
+                        <StackLayout v-for="(result, idx) in podium" :key="result.ID" :col="idx">
+                            <Label :text="result.Position || '?'" class="text-white text-center mt-2 medal"
+                                :class="'medal-' + (result.Position || 0)" />
                             <Label :text="getPilotName(result.Pilot)" class="text-black text-center mt-2" />
                             <Label :text="formatRaceTime(getRaceTime(result))" class="text-black text-center mt-1" />
                         </StackLayout>
@@ -101,7 +101,7 @@ onMounted(() => {
                 <StackLayout class="p-3 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
                     <StackLayout>
-                        <StackLayout v-for="result in props.race.ResultSummaries" :key="result.ID"
+                        <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
                             class="mb-3 p-4 mb-2 bg-gray-800 rounded-md">
                             <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
                                 <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
@@ -113,12 +113,12 @@ onMounted(() => {
                                         class="text-gray-500 font-bold text-xs  align-top" />
                                 </GridLayout>
                                 <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" :text="result.Position"
-                                        width="40" height="40"
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
+                                        :text="result.Position || 'NA'" width="40" height="40"
                                         class="text-xl font-bold text-white text-center bg-white rounded-md"
                                         style="background-color: rgba(255,255,255,0.2);" />
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="1"
-                                        :text="result.Points + ' points'" class="text-white text-xs" />
+                                    <Label v-if="parseInt(result.Points) > 0" row="1" :text="result.Points + ' points'"
+                                        class="text-white text-xs" />
                                 </GridLayout>
                             </GridLayout>
                             <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
@@ -126,7 +126,8 @@ onMounted(() => {
                                     <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
                                         class="text-gray-400 mr-2" />
                                     <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
-                                    <Label v-if="result.RaceTime" row="2" text="Race:" class="text-gray-400 mr-2" />
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="2" text="Race:"
+                                        class="text-gray-400 mr-2" />
                                 </GridLayout>
                                 <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
                                     <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
@@ -134,8 +135,8 @@ onMounted(() => {
                                         class="text-yellow-400 mr-2" />
                                     <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
                                         class="text-green-500 mr-2" />
-                                    <Label v-if="result.RaceTime" row="2" :text="formatRaceTime(getRaceTime(result))"
-                                        class="text-white mr-2" />
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="2"
+                                        :text="formatRaceTime(getRaceTime(result))" class="text-white mr-2" />
                                 </GridLayout>
                             </GridLayout>
                             <!-- Lap Details Table: now only visible if rawRace exists -->
