@@ -55,6 +55,13 @@ function getPilotChannel(pilotId: string): string {
     return 'R1';
 }
 
+function getRaceTime(result: any) {
+    if (props.round.EventType === 'TimeTrial') {
+        return result.PbLapTime || 'DNF';
+    }
+    return result.RaceTime || 'DNF';
+}
+
 onMounted(() => {
     fetchRoundDetails(props.round.Event, props.round.ID);
 });
@@ -91,7 +98,7 @@ onMounted(() => {
                             <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
                                 :class="'channel ' + getPilotChannelClass(result.Pilot)" />
                             <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />
-                            <Label col="3" :text="formatRaceTime(result.RaceTime || 'DNF')"
+                            <Label col="3" :text="formatRaceTime(getRaceTime(result))"
                                 class="text-white text-right" />
                         </GridLayout>
                     </StackLayout>

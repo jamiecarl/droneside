@@ -8,6 +8,13 @@ const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: Pilo
 
 // Compute podium: sort results by numeric position and take top 3.
 const podium = computed(() => {
+    if (props.round.EventType === 'TimeTrial') {
+        const sorted = [...props.race.ResultSummaries].sort((a, b) => (a.PbLapTime || Infinity) - (b.PbLapTime || Infinity));
+        sorted.forEach((result, index) => {
+            result.Position = (index + 1).toString();
+        });
+        return sorted.slice(0, 3);
+    }
     const sorted = [...props.race.ResultSummaries].sort((a, b) => Number(a.Position) - Number(b.Position));
     return sorted.slice(0, 3);
 });
@@ -53,6 +60,13 @@ function getLapsForPilot(pilotId: string): LapType[] {
         .sort((a, b) => a.LapNumber - b.LapNumber);
 }
 
+function getRaceTime(result: any) {
+    if (props.round.EventType === 'TimeTrial') {
+        return result.PbLapTime || 'DNF';
+    }
+    return result.RaceTime || 'DNF';
+}
+
 onMounted(() => {
     fetchRawRaceDetail();
 });
@@ -77,8 +91,7 @@ onMounted(() => {
                             <Label :text="result.Position" class="text-white text-center mt-2 medal"
                                 :class="'medal-' + result.Position" />
                             <Label :text="getPilotName(result.Pilot)" class="text-black text-center mt-2" />
-                            <Label :text="formatRaceTime(result.RaceTime || 'DNF')"
-                                class="text-black text-center mt-1" />
+                            <Label :text="formatRaceTime(getRaceTime(result))" class="text-black text-center mt-1" />
                         </StackLayout>
                     </GridLayout>
                 </StackLayout>
@@ -100,24 +113,28 @@ onMounted(() => {
                                         class="text-gray-500 font-bold text-xs  align-top" />
                                 </GridLayout>
                                 <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                                    <Label row="0" :text="result.Position" width="40" height="40"
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" :text="result.Position"
+                                        width="40" height="40"
                                         class="text-xl font-bold text-white text-center bg-white rounded-md"
                                         style="background-color: rgba(255,255,255,0.2);" />
-                                    <Label row="1" :text="result.Points + ' points'" class="text-white text-xs" />
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="1"
+                                        :text="result.Points + ' points'" class="text-white text-xs" />
                                 </GridLayout>
                             </GridLayout>
                             <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
                                 <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
-                                    <Label row="0" text="Holeshot:" class="text-gray-400 mr-2" />
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
+                                        class="text-gray-400 mr-2" />
                                     <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
-                                    <Label row="2" text="Race:" class="text-gray-400 mr-2" />
+                                    <Label v-if="result.RaceTime" row="2" text="Race:" class="text-gray-400 mr-2" />
                                 </GridLayout>
                                 <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
-                                    <Label row="0" :text="formatRaceTime(result.HoleshotTime || 'NA')"
+                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
+                                        :text="formatRaceTime(result.HoleshotTime || 'NA')"
                                         class="text-yellow-400 mr-2" />
                                     <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
                                         class="text-green-500 mr-2" />
-                                    <Label row="2" :text="formatRaceTime(result.RaceTime || 'DNF')"
+                                    <Label v-if="result.RaceTime" row="2" :text="formatRaceTime(getRaceTime(result))"
                                         class="text-white mr-2" />
                                 </GridLayout>
                             </GridLayout>
