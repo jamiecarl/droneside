@@ -9,7 +9,7 @@ const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: Pilo
 // Compute podium: sort results by numeric position and take top 3.
 const podium = computed(() => {
     if (props.round.EventType === 'TimeTrial') {
-        const sorted = [...props.race.ResultSummaries].sort((a, b) => (a.PbLapTime || Infinity) - (b.PbLapTime || Infinity));
+        const sorted = [...props.race.ResultSummaries].sort((a, b) => parseFloat(a.PbLapTime || "999") - parseFloat(b.PbLapTime || "999"));
         sorted.forEach((result, index) => {
             result.Position = (index + 1).toString();
         });
