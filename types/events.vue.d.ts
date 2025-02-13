@@ -38,10 +38,11 @@ export interface RoundType {
 export interface PilotType {
     ID: string;
     Name: string;
+    Phonetic: string;
     FirstName: string;
     LastName: string;
-    PhotoURL: string | null;
-    CatchPhrase: string | null;
+    PhotoURL: string;
+    CatchPhrase: string;
 }
 
 export interface ResultSummaryType {
