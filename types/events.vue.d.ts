@@ -81,8 +81,25 @@ export interface RaceDetailType {
     Bracket: string;
     PilotChannels: PilotChannelType[];
     ResultSummaries: ResultSummaryType[];
-    Laps: LapType[];
+}
+
+export interface RawRaceDataType {
+    ID: string;
+    RaceNumber: number;
+    Round: string;
+    TargetLaps: number;
+    PrimaryTimingSystemLocation: string;
+    Valid: boolean;
+    AutoAssignNumbers: boolean;
+    Event: string;
+    Bracket: string;
+    ExternalID: number;
+    Start: string;
+    End: string;
+    TotalPausedTime: string;
+    PilotChannels: PilotChannelType[];
     Detections: DetectionType[];
+    Laps: LapType[];
 }
 
 export interface LapType {
