@@ -102,10 +102,10 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
                 <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                  <Label v-if="round.EventType !== 'TimeTrial'" row="0"
-                    :text="raceSummaries[round.ID]?.Position || 'NA'" width="40" height="40"
-                    class="text-xl font-bold text-white text-center bg-white rounded-md"
-                    style="background-color: rgba(255,255,255,0.2);" />
+                  <Label v-if="round.EventType !== 'TimeTrial'" row="0" width="40" height="40"
+                    :text="raceSummaries[round.ID]?.Position || 'NA'"
+                    class="text-xl font-bold text-black text-center rounded-md"
+                    :class="'medal-' + (raceSummaries[round.ID]?.Position || '8')" />
                   <Label v-if="parseInt(raceSummaries[round.ID]?.Points) > 0" row="1"
                     :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
                 </GridLayout>
