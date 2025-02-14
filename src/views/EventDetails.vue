@@ -1,21 +1,19 @@
 <script lang="ts" setup>
-import {
-  ref,
-  onMounted,
-  getCurrentInstance
-} from 'nativescript-vue';
-import { RoundType, EventType, PilotType, ChannelType } from 'types/events.vue';
+import { ref, onMounted, computed } from 'nativescript-vue';
+import { RoundType, EventType, PilotType, ChannelType, PointsType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
-import { GridLayout, StackLayout, TabViewItem } from '@nativescript/core';
+import { GridLayout, ScrollView, StackLayout, TabViewItem } from '@nativescript/core';
 import ClubEventHeader from '../components/ClubEventHeader.vue';
 
 const rounds = ref<RoundType[]>([]);
 const pilots = ref<PilotType[]>([]);
+const points = ref<PointsType[]>([]);
 const props = defineProps<{ event: EventType; channels: ChannelType[] }>();
 
 const loadingRounds = ref(true);
 const loadingPilots = ref(true);
+const loadingPoints = ref(true);
 
 async function fetchRounds(eventId: string) {
   try {
@@ -43,6 +41,39 @@ async function fetchPilots(eventId: string) {
   }
 }
 
+async function fetchPoints(eventId: string) {
+  try {
+    console.log('Fetching points for event:', eventId);
+    const response = await fetch(`https://fpvtrackside.com/api/public/points/eventId/${eventId}`);
+    const data = await response.json();
+    points.value = data;
+  } catch (error) {
+    console.error('Error fetching points:', error);
+  } finally {
+    loadingPoints.value = false;
+  }
+}
+
+const sortedPoints = computed(() => {
+  const pilotPointsMap: { [key: string]: number } = {};
+
+  points.value.forEach(point => {
+    if (!pilotPointsMap[point.pilot_id]) {
+      pilotPointsMap[point.pilot_id] = 0;
+    }
+    pilotPointsMap[point.pilot_id] += parseInt(point.points);
+  });
+
+  return Object.entries(pilotPointsMap)
+    .map(([PilotID, totalPoints]) => ({ PilotID, Points: totalPoints }))
+    .sort((a, b) => b.Points - a.Points);
+});
+
+function getPilotName(pilotId: string): string {
+  const pilot = pilots.value.find(pilot => pilot.ID === pilotId);
+  return pilot ? pilot.Name : 'Unknown Pilot';
+}
+
 function formatDate(dateString: string): string {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
@@ -51,6 +82,7 @@ function formatDate(dateString: string): string {
 onMounted(() => {
   fetchRounds(props.event.ID);
   fetchPilots(props.event.ID);
+  fetchPoints(props.event.ID);
 });
 </script>
 
@@ -86,7 +118,8 @@ onMounted(() => {
               <ScrollView row="1" v-if="!loadingPilots">
                 <StackLayout class="p-3 bg-black">
                   <GridLayout v-for="(pilot, index) in pilots" :key="pilot.ID" class="p-4 my-2 bg-gray-800 rounded-md"
-                    columns="auto, *" @tap="$navigateTo(PilotDetails, { props: { pilot, event: props.event, pilots } })">
+                    columns="auto, *"
+                    @tap="$navigateTo(PilotDetails, { props: { pilot, event: props.event, pilots } })">
                     <Image v-if="pilot.PhotoURL" :src="pilot.PhotoURL" col="0"
                       class="h-16 w-16 object-cover rounded-lg mr-3" />
                     <Image v-else src="~/assets/pilot.png" col="0" class="h-16 w-16 object-cover rounded-lg mr-3" />
@@ -100,6 +133,19 @@ onMounted(() => {
                 </StackLayout>
               </ScrollView>
               <Label v-else text="Loading pilots..." class="text-center text-white" />
+            </GridLayout>
+          </TabViewItem>
+          <TabViewItem title="Leaderboard">
+            <GridLayout>
+              <ScrollView row="1" v-if="!loadingPoints">
+                <StackLayout class="p-3 bg-black">
+                  <GridLayout v-for="(point, index) in sortedPoints" :key="point.PilotID"
+                    class="p-4 my-2 bg-gray-800 rounded-md" columns="*, auto">
+                    <Label col="0" :text="getPilotName(point.PilotID)" class="text-lg text-white" />
+                    <Label col="1" :text="point.Points" class="text-lg text-red-500 text-right" />
+                  </GridLayout>
+                </StackLayout>
+              </ScrollView>
             </GridLayout>
           </TabViewItem>
         </TabView>
