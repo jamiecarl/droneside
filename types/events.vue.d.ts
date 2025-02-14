@@ -128,3 +128,12 @@ export interface DetectionType {
     ID: string;
     ExternalID: number;
 }
+
+export interface PointsType {
+    pilot_id: string;
+    pilot: string;
+    round: string;
+    round_order: string;
+    bracket: string;
+    points: string;
+}
