@@ -176,6 +176,7 @@ onMounted(() => {
           </StackLayout>
         </StackLayout>
       </ScrollView>
+      <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
     </GridLayout>
   </Page>
 </template>
