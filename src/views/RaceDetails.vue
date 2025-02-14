@@ -7,6 +7,8 @@ import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults'
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
 
+const loadingRaces = ref(true);
+
 // Compute podium: sort results by numeric position and take top 3.
 const podium = computed(() => {
     if (props.round.EventType === 'TimeTrial') {
@@ -46,6 +48,8 @@ async function fetchRawRaceDetail() {
         rawRace.value = data;
     } catch (error) {
         console.error('Error fetching raw race detail:', error);
+    } finally {
+        loadingRaces.value = false;
     }
 }
 
@@ -68,6 +72,7 @@ function getRaceTime(result: any) {
 }
 
 onMounted(() => {
+    loadingRaces.value = false;
     fetchRawRaceDetail();
 });
 </script>
@@ -101,7 +106,7 @@ onMounted(() => {
             <ScrollView row="1">
                 <StackLayout class="p-3 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
-                    <StackLayout>
+                    <StackLayout v-if="!loadingRaces">
                         <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
                             class="p-4 my-2 bg-gray-800 rounded-md">
                             <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
@@ -160,6 +165,7 @@ onMounted(() => {
                             </template>
                         </StackLayout>
                     </StackLayout>
+                    <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
                 </StackLayout>
             </ScrollView>
         </GridLayout>

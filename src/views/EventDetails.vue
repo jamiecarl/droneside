@@ -43,6 +43,9 @@ async function fetchPilots(eventId: string) {
 
 async function fetchPoints(eventId: string) {
   try {
+    if (pilots.value.length === 0) {
+      fetchPilots(eventId);
+    }
     console.log('Fetching points for event:', eventId);
     const response = await fetch(`https://fpvtrackside.com/api/public/points/eventId/${eventId}`);
     const data = await response.json();
@@ -90,6 +93,7 @@ function onTabChange(index: any) {
 }
 
 onMounted(() => {
+  fetchPilots(props.event.ID);
   onTabChange(0); // Load the first tab by default
 });
 </script>
@@ -118,7 +122,7 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
-              <Label v-else text="Loading rounds..." class="text-center text-white" />
+              <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
           <TabViewItem title="Pilots">
@@ -140,7 +144,7 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
-              <Label v-else text="Loading pilots..." class="text-center text-white" />
+              <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
           <TabViewItem title="Leaderboard">
@@ -154,7 +158,7 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
-              <Label v-else text="Loading leaderboard..." class="text-center text-white" />
+              <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
         </TabView>
