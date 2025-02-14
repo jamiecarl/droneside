@@ -79,10 +79,18 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
+function onTabChange(index: any) {
+  if (index.value === 0 && loadingRounds.value) {
+    fetchRounds(props.event.ID);
+  } else if (index.value === 1 && loadingPilots.value) {
+    fetchPilots(props.event.ID);
+  } else if (index.value === 2 && loadingPoints.value) {
+    fetchPoints(props.event.ID);
+  }
+}
+
 onMounted(() => {
-  fetchRounds(props.event.ID);
-  fetchPilots(props.event.ID);
-  fetchPoints(props.event.ID);
+  onTabChange(0); // Load the first tab by default
 });
 </script>
 
@@ -97,7 +105,7 @@ onMounted(() => {
     <GridLayout rows="auto, *" class="p-0">
       <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />
       <ContentView row="1" class="bg-black rounded-t-3xl">
-        <TabView>
+        <TabView @selectedIndexChange="onTabChange">
           <TabViewItem title="Rounds">
             <GridLayout>
               <ScrollView row="1" v-if="!loadingRounds">
@@ -146,6 +154,7 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
+              <Label v-else text="Loading leaderboard..." class="text-center text-white" />
             </GridLayout>
           </TabViewItem>
         </TabView>
