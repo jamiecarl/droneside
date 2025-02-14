@@ -53,6 +53,28 @@ async function fetchRawRaceDetail() {
     }
 }
 
+async function fetchRoundDetails(eventId: string, roundId: string) {
+    try {
+        console.log('Fetching round details for event:', eventId, 'round:', roundId);
+        const response = await fetch(`https://fpvtrackside.com/api/public/races/eventId/${eventId}/roundId/${roundId}`);
+        const data = await response.json();
+        // Update the current race data with the refreshed data
+        const updatedRace = data.find((r: RaceDetailType) => r.ID === props.race.ID);
+        if (updatedRace) {
+            Object.assign(props.race, updatedRace);
+        }
+    } catch (error) {
+        console.error('Error fetching round details:', error);
+    }
+}
+
+async function refreshData() {
+    await Promise.all([
+        fetchRawRaceDetail(),
+        fetchRoundDetails(props.round.Event, props.round.ID)
+    ]);
+}
+
 // Helper: return laps for a given pilot using corresponding detections
 function getLapsForPilot(pilotId: string): LapType[] {
     if (!rawRace.value || !rawRace.value.Laps || !rawRace.value.Detections) return [];
@@ -72,7 +94,7 @@ function getRaceTime(result: any) {
 }
 
 onMounted(() => {
-    loadingRaces.value = false;
+    loadingRaces.value = true;
     fetchRawRaceDetail();
 });
 </script>
@@ -83,7 +105,7 @@ onMounted(() => {
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <!-- Updated header label with event and round details -->
             <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
-            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRawRaceDetail" />
+            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
         </ActionBar>
         <!-- Parent container with fixed podium (row 0) and scrollable pilots (row 1) -->
         <GridLayout rows="auto, *">
@@ -106,66 +128,61 @@ onMounted(() => {
             <ScrollView row="1">
                 <StackLayout class="p-3 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
-                    <StackLayout v-if="!loadingRaces">
-                        <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
-                            class="p-4 my-2 bg-gray-800 rounded-md">
-                            <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
-                                <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
-                                    class="h-16 w-16 object-cover rounded-lg mr-2" />
-                                <GridLayout col="1" rows="auto, auto" class="bg-transparent">
-                                    <Label row="0" :text="getPilotName(result.Pilot)"
-                                        class="text-white font-bold text-lg align-top" />
-                                    <Label row="1" :text="getPilotCatchPhrase(result.Pilot)"
-                                        class="text-gray-500 font-bold text-xs  align-top" />
-                                </GridLayout>
-                                <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
-                                        :text="result.Position || 'NA'" width="40" height="40"
-                                        class="text-xl font-bold text-white text-center bg-white rounded-md"
-                                        style="background-color: rgba(255,255,255,0.2);" />
-                                    <Label v-if="parseInt(result.Points) > 0" row="1" :text="result.Points + ' points'"
-                                        class="text-white text-xs" />
-                                </GridLayout>
+                    <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
+                        class="p-4 my-2 bg-gray-800 rounded-md">
+                        <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
+                            <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
+                                class="h-16 w-16 object-cover rounded-lg mr-2" />
+                            <GridLayout col="1" rows="auto, auto" class="bg-transparent">
+                                <Label row="0" :text="getPilotName(result.Pilot)"
+                                    class="text-white font-bold text-lg align-top" />
+                                <Label row="1" :text="getPilotCatchPhrase(result.Pilot)"
+                                    class="text-gray-500 font-bold text-xs  align-top" />
                             </GridLayout>
-                            <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
-                                <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
-                                        class="text-gray-400 mr-2" />
-                                    <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="2" text="Race:"
-                                        class="text-gray-400 mr-2" />
-                                </GridLayout>
-                                <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
-                                        :text="formatRaceTime(result.HoleshotTime || 'NA')"
-                                        class="text-yellow-400 mr-2" />
-                                    <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
-                                        class="text-green-500 mr-2" />
-                                    <Label v-if="props.round.EventType !== 'TimeTrial'" row="2"
-                                        :text="formatRaceTime(getRaceTime(result))" class="text-white mr-2" />
-                                </GridLayout>
+                            <GridLayout col="2" rows="auto, auto" class="bg-transparent">
+                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
+                                    :text="result.Position || 'NA'" width="40" height="40"
+                                    class="text-xl font-bold text-white text-center bg-white rounded-md"
+                                    style="background-color: rgba(255,255,255,0.2);" />
+                                <Label v-if="parseInt(result.Points) > 0" row="1" :text="result.Points + ' points'"
+                                    class="text-white text-xs" />
                             </GridLayout>
-                            <!-- Lap Details Table: now only visible if rawRace exists -->
-                            <template v-if="rawRace">
-                                <GridLayout :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`"
-                                    columns="*, *" class="bg-transparent">
-                                    <!-- Header Row -->
-                                    <Label row="0" col="0" text="Lap" class="text-white font-bold"
-                                        style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
-                                    <Label row="0" col="1" text="Time" class="text-white font-bold"
-                                        style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
-                                    <!-- Data Rows -->
-                                    <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
-                                        <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber"
-                                            class="text-white" />
-                                        <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
-                                            class="text-white" />
-                                    </template>
-                                </GridLayout>
+                        </GridLayout>
+                        <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
+                            <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
+                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
+                                    class="text-gray-400 mr-2" />
+                                <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
+                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="2" text="Race:"
+                                    class="text-gray-400 mr-2" />
+                            </GridLayout>
+                            <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
+                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
+                                    :text="formatRaceTime(result.HoleshotTime || 'NA')" class="text-yellow-400 mr-2" />
+                                <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
+                                    class="text-green-500 mr-2" />
+                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="2"
+                                    :text="formatRaceTime(getRaceTime(result))" class="text-white mr-2" />
+                            </GridLayout>
+                        </GridLayout>
+                        <!-- Lap Details Table: now only visible if rawRace exists -->
+                        <GridLayout v-if="!loadingRaces"
+                            :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`" columns="*, *"
+                            class="bg-transparent">
+                            <!-- Header Row -->
+                            <Label row="0" col="0" text="Lap" class="text-white font-bold"
+                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                            <Label row="0" col="1" text="Time" class="text-white font-bold"
+                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                            <!-- Data Rows -->
+                            <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
+                                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" class="text-white" />
+                                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
+                                    class="text-white" />
                             </template>
-                        </StackLayout>
+                        </GridLayout>
+                        <Label v-else-if="loadingRaces" text="Loading race data..." class="text-white text-center" />
                     </StackLayout>
-                    <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
                 </StackLayout>
             </ScrollView>
         </GridLayout>
