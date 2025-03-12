@@ -2,7 +2,7 @@
 import { defineProps, computed, ref, onMounted } from 'nativescript-vue';
 import type { PilotType, RawRaceDataType, RaceDetailType, LapType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
-import { GridLayout } from '@nativescript/core';
+import { Application, GridLayout } from '@nativescript/core';
 import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
@@ -96,6 +96,7 @@ function getRaceTime(result: any) {
 onMounted(() => {
     loadingRaces.value = true;
     fetchRawRaceDetail();
+    Application.on(Application.resumeEvent, refreshData);
 });
 </script>
 
