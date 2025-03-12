@@ -15,8 +15,19 @@ const loadingRounds = ref(true);
 const loadingPilots = ref(true);
 const loadingPoints = ref(true);
 
+async function fetchEventDetails(eventId: string) {
+  try {
+    console.log('Fetching event details:', eventId);
+    const response = await fetch(`https://fpvtrackside.com/api/public/events/id/${eventId}`);
+    await response.json(); // Cache is updated even if we don't use the response
+  } catch (error) {
+    console.error('Error fetching event details:', error);
+  }
+}
+
 async function fetchRounds(eventId: string) {
   try {
+    await fetchEventDetails(eventId);
     console.log('Fetching rounds for event:', eventId);
     const response = await fetch(`https://fpvtrackside.com/api/public/rounds/eventId/${eventId}`);
     const data = await response.json();
