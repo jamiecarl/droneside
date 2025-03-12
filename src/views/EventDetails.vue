@@ -19,7 +19,16 @@ async function fetchEventDetails(eventId: string) {
   try {
     console.log('Fetching event details:', eventId);
     const response = await fetch(`https://fpvtrackside.com/api/public/events/id/${eventId}`);
-    await response.json(); // Cache is updated even if we don't use the response
+    const data = await response.json();
+    // Update channels with color information
+    if (data.Channels) {
+      props.channels.forEach(channel => {
+        const eventChannel = data.Channels.find((c: any) => c.Channel === channel.ID);
+        if (eventChannel) {
+          channel.Color = eventChannel.Color;
+        }
+      });
+    }
   } catch (error) {
     console.error('Error fetching event details:', error);
   }

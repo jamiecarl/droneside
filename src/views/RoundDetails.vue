@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { GridLayout } from '@nativescript/core';
 import { defineProps, ref, onMounted, computed } from 'nativescript-vue';
-import { EventType, RoundType, RaceDetailType, PilotType, ChannelType } from 'types/events.vue';
+import { EventType, RoundType, RaceDetailType, PilotType, ChannelType, ResultSummaryType } from 'types/events.vue';
 import RaceDetails from './RaceDetails.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
 import { sortResultByPbTime, sortResultsByPosition } from '../utils/sortResults';
@@ -23,6 +23,19 @@ async function fetchRoundDetails(eventId: string, roundId: string) {
             race.ResultSummaries = props.round.EventType === 'TimeTrial'
                 ? sortResultByPbTime(race.ResultSummaries)
                 : sortResultsByPosition(race.ResultSummaries);
+            race.ResultSummaries.forEach((result: ResultSummaryType) => {
+                const pilot = props.pilots.find((p) => p.ID === result.Pilot);
+                result.PilotName = pilot ? pilot.Name : 'Unknown Pilot';
+                const raceChannel = race.PilotChannels.find(c => c.Pilot === result.Pilot);
+                if (!raceChannel) {
+                    return;
+                }
+                const pilotChannel = props.channels.find(c => c.ID === raceChannel.Channel);
+                if (!pilotChannel) {
+                    return;
+                }
+                result.Channel = pilotChannel;
+            });
         });
         raceDetails.value = data;
     } catch (error) {
@@ -30,32 +43,6 @@ async function fetchRoundDetails(eventId: string, roundId: string) {
     } finally {
         loadingDetails.value = false;
     }
-}
-
-function getPilotName(pilotId: string) {
-    const pilot = props.pilots.find((p) => p.ID === pilotId);
-    return pilot ? pilot.Name : 'Unknown Pilot';
-}
-
-/* Return a CSS class from channels based on the result index.
-   Cycles through channels. Assumes channel.Name is of the form "B{band}{channelNumber}" */
-function getPilotChannelClass(pilotId: string): string {
-    return 'channel-' + getPilotChannel(pilotId);
-}
-
-function getPilotChannel(pilotId: string): string {
-    if (props.channels.length === 0) return 'NA';
-    const race = raceDetails.value.find(r => r.PilotChannels.some(pc => pc.Pilot === pilotId));
-    if (race) {
-        const pilotChannel = race.PilotChannels.find(pc => pc.Pilot === pilotId);
-        if (pilotChannel) {
-            const channel = props.channels.find(c => c.ID === pilotChannel.Channel);
-            if (channel) {
-                return channel.ShortBand + channel.Number;
-            }
-        }
-    }
-    return 'R1';
 }
 
 function getRaceTime(result: any) {
@@ -75,7 +62,8 @@ onMounted(() => {
         <ActionBar>
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <Label :text="'Round ' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
-            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="fetchRoundDetails(props.round.Event, props.round.ID)" />
+            <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
+                @tap="fetchRoundDetails(props.round.Event, props.round.ID)" />
         </ActionBar>
         <!-- Wrap content in a GridLayout with fixed header -->
         <GridLayout rows="auto, *">
@@ -99,11 +87,10 @@ onMounted(() => {
                         <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
                             columns="24, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
                             <Label col="0" :text="result.Position || '-'" class="text-white text-center mr-1" />
-                            <Label col="1" :text="getPilotChannel(result.Pilot)" width="16" height="16" class="mr-3"
-                                :class="'channel ' + getPilotChannelClass(result.Pilot)" />
-                            <Label col="2" :text="getPilotName(result.Pilot)" class="text-white" />
-                            <Label col="3" :text="formatRaceTime(getRaceTime(result))"
-                                class="text-white text-right" />
+                            <Label col="1" :text="result?.Channel?.DisplayName" width="16" height="16" class="mr-3 channel"
+                                :style="{ backgroundColor: result?.Channel?.Color }" />
+                            <Label col="2" :text="result.PilotName" class="text-white" />
+                            <Label col="3" :text="formatRaceTime(getRaceTime(result))" class="text-white text-right" />
                         </GridLayout>
                     </StackLayout>
                 </StackLayout>

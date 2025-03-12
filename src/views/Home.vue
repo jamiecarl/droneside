@@ -38,6 +38,9 @@ async function fetchChannels() {
     const response = await fetch('https://fpvtrackside.com/api/public/channels');
     const data = await response.json();
     channels.value = data;
+    channels.value.forEach((channel) => {
+      channel.DisplayName = channel.ShortBand + channel.Number;
+    });
   } catch (error) {
     console.error('Error fetching channels:', error);
   }
