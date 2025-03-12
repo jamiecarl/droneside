@@ -1,12 +1,13 @@
 export interface ChannelType {
+    ID: string;
     Number: number;
     Band: string;
     ChannelPrefix: string;
     Frequency: number;
     DisplayName: string | null;
-    ID: string;
     ExternalID: number;
     ShortBand: string;
+    Color: string
 }
 
 export interface ClubType {
@@ -48,6 +49,7 @@ export interface PilotType {
 export interface ResultSummaryType {
     ID: string;
     Pilot: string;
+    PilotName: string;
     Race: string;
     HoleshotTime: string;
     PbLapTime: string;
@@ -58,6 +60,7 @@ export interface ResultSummaryType {
     LapCount: string;
     Points: string;
     Position: string;
+    Channel: ChannelType;
 }
 
 export interface PilotChannelType {
