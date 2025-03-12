@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'nativescript-vue';
 import { RoundType, EventType, PilotType, ChannelType, PointsType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
-import { GridLayout, ScrollView, StackLayout, TabViewItem } from '@nativescript/core';
+import { Application, GridLayout, ScrollView, StackLayout, TabViewItem } from '@nativescript/core';
 import ClubEventHeader from '../components/ClubEventHeader.vue';
 
 const rounds = ref<RoundType[]>([]);
@@ -95,6 +95,7 @@ function onTabChange(index: any) {
 onMounted(() => {
   fetchPilots(props.event.ID);
   onTabChange(0); // Load the first tab by default
+  Application.on(Application.resumeEvent, () => onTabChange(0));
 });
 </script>
 
