@@ -13,6 +13,9 @@ const loadingDetails = ref(true);
 
 async function fetchRoundDetails(eventId: string, roundId: string) {
     try {
+        console.log('Fetching event details:', eventId);
+        const eventResponse = await fetch(`https://fpvtrackside.com/api/public/events/id/${eventId}`);
+        await eventResponse.json();
         console.log('Fetching round details for event:', eventId, 'round:', roundId);
         const response = await fetch(`https://fpvtrackside.com/api/public/races/eventId/${eventId}/roundId/${roundId}`);
         const data = await response.json();
@@ -87,8 +90,8 @@ onMounted(() => {
                         <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
                             columns="24, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
                             <Label col="0" :text="result.Position || '-'" class="text-white text-center mr-1" />
-                            <Label col="1" :text="result?.Channel?.DisplayName" width="16" height="16" class="mr-3 channel"
-                                :style="{ backgroundColor: result?.Channel?.Color }" />
+                            <Label col="1" :text="result?.Channel?.DisplayName" width="16" height="16"
+                                class="mr-3 channel" :style="{ backgroundColor: result?.Channel?.Color }" />
                             <Label col="2" :text="result.PilotName" class="text-white" />
                             <Label col="3" :text="formatRaceTime(getRaceTime(result))" class="text-white text-right" />
                         </GridLayout>
