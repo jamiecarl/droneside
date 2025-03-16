@@ -2,7 +2,7 @@
 import { defineProps, computed, ref, onMounted } from 'nativescript-vue';
 import type { PilotType, RawRaceDataType, RaceDetailType, LapType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
-import { Application, GridLayout } from '@nativescript/core';
+import { Application, GridLayout, StackLayout } from '@nativescript/core';
 import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
@@ -95,6 +95,13 @@ function getRaceTime(result: any) {
     return result.RaceTime || 'DNF';
 }
 
+// Format date for display
+function formatDateTime(dateTimeString: string): string {
+    if (!dateTimeString) return 'Not available';
+    const date = new Date(dateTimeString);
+    return date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+}
+
 onMounted(() => {
     loadingRaces.value = true;
     fetchRawRaceDetail();
@@ -110,8 +117,8 @@ onMounted(() => {
             <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
             <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
         </ActionBar>
-        <!-- Parent container with fixed podium (row 0) and scrollable pilots (row 1) -->
-        <GridLayout rows="auto, *">
+        <!-- Parent container with race timing info (row 0), fixed podium (row 1) and scrollable pilots (row 2) -->
+        <GridLayout rows="auto, auto, *">
             <!-- Fixed Podium Section -->
             <StackLayout row="0" class="p-3 bg-white">
                 <!-- Podium Section -->
@@ -127,8 +134,17 @@ onMounted(() => {
                     </GridLayout>
                 </StackLayout>
             </StackLayout>
+            <!-- Race Timing Section -->
+            <StackLayout row="1" class="p-2 bg-gray-100">
+                <GridLayout columns="auto, *, auto, *" class="bg-transparent">
+                    <Label col="0" text="Start:" class="text-gray-600 text-sm font-bold" />
+                    <Label col="1" :text="formatDateTime(props.race.Start)" class="text-black text-sm" />
+                    <Label col="2" text="End:" class="text-gray-600 text-sm font-bold" />
+                    <Label col="3" :text="formatDateTime(props.race.End)" class="text-black text-sm" />
+                </GridLayout>
+            </StackLayout>
             <!-- Scrollable All Pilots Section -->
-            <ScrollView row="1">
+            <ScrollView row="2">
                 <StackLayout class="p-3 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
                     <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
