@@ -31,12 +31,13 @@ async function fetchEventDetails(eventId: string) {
     }
   } catch (error) {
     console.error('Error fetching event details:', error);
+  } finally {
+    fetchRounds(eventId);
   }
 }
 
 async function fetchRounds(eventId: string) {
   try {
-    await fetchEventDetails(eventId);
     console.log('Fetching rounds for event:', eventId);
     const response = await fetch(`https://fpvtrackside.com/api/public/rounds/eventId/${eventId}`);
     const data = await response.json();
@@ -104,7 +105,7 @@ function formatDate(dateString: string): string {
 
 function onTabChange(index: any) {
   if (index.value === 0 && loadingRounds.value) {
-    fetchRounds(props.event.ID);
+    fetchEventDetails(props.event.ID);
   } else if (index.value === 1 && loadingPilots.value) {
     fetchPilots(props.event.ID);
   } else if (index.value === 2 && loadingPoints.value) {
@@ -125,7 +126,7 @@ onMounted(() => {
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
       <Label text="Event Rounds" class="font-bold text-lg" />
       <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
-        @tap="fetchRounds(props.event.ID); fetchPilots(props.event.ID);" />
+        @tap="fetchEventDetails(props.event.ID); fetchPilots(props.event.ID);" />
     </ActionBar>
     <GridLayout rows="auto, *" class="p-0">
       <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />

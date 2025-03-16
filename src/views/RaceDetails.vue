@@ -55,6 +55,9 @@ async function fetchRawRaceDetail() {
 
 async function fetchRoundDetails(eventId: string, roundId: string) {
     try {
+        console.log('Fetching event details:', props.race.Event);
+        const eventResponse = await fetch(`https://fpvtrackside.com/api/public/events/id/${props.race.Event}`);
+        await eventResponse.json();
         console.log('Fetching round details for event:', eventId, 'round:', roundId);
         const response = await fetch(`https://fpvtrackside.com/api/public/races/eventId/${eventId}/roundId/${roundId}`);
         const data = await response.json();
@@ -65,14 +68,13 @@ async function fetchRoundDetails(eventId: string, roundId: string) {
         }
     } catch (error) {
         console.error('Error fetching round details:', error);
+    } finally {
+        fetchRawRaceDetail();
     }
 }
 
 async function refreshData() {
-    await Promise.all([
-        fetchRawRaceDetail(),
-        fetchRoundDetails(props.round.Event, props.round.ID)
-    ]);
+    fetchRoundDetails(props.round.Event, props.round.ID)
 }
 
 // Helper: return laps for a given pilot using corresponding detections
