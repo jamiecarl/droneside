@@ -13,5 +13,5 @@ export function sortResultByPbTime(results: ResultSummaryType[]) {
     sorted.forEach((result, index) => {
         result.Position = (index + 1).toString();
     });
-    return sorted.slice(0, 3);
+    return sorted;
 }
