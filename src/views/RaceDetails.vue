@@ -9,12 +9,40 @@ const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: Pilo
 
 const loadingRaces = ref(true);
 
-// Compute podium: sort results by numeric position and take top 3.
+// Compute podium: sort results by numeric position and take top 3, but only if race is finished.
 const podium = computed(() => {
+    const isRaceFinished = props.race.End && props.race.Start && props.race.End > props.race.Start;
+    if (!isRaceFinished) {
+        return null;
+    }
+    
     if (props.round.EventType === 'TimeTrial') {
         return sortResultByPbTime([...props.race.ResultSummaries]).slice(0, 3);
     }
     return sortResultsByPosition([...props.race.ResultSummaries]).slice(0, 3);
+});
+
+// Check if race has started (has a valid start time)
+const hasRaceStarted = computed(() => {
+    return props.race.Start && props.race.Start !== '' && props.race.Start > '0001-01-01 00:00:00';
+});
+
+// Calculate race duration if both start and end times are available
+const raceDuration = computed(() => {
+    if (!props.race.Start || !props.race.End || props.race.End <= props.race.Start) {
+        return null;
+    }
+    
+    const startTime = new Date(props.race.Start);
+    const endTime = new Date(props.race.End);
+    const durationMs = endTime.getTime() - startTime.getTime();
+    
+    // Convert to minutes and seconds
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
 
 const sortedResultSummaries = computed(() => {
@@ -89,10 +117,11 @@ function getLapsForPilot(pilotId: string): LapType[] {
 }
 
 function getRaceTime(result: any) {
+    const placeholder = result.Position ? 'DNF' : '-';
     if (props.round.EventType === 'TimeTrial') {
-        return result.PbLapTime || 'DNF';
+        return result.PbLapTime || placeholder;
     }
-    return result.RaceTime || 'DNF';
+    return result.RaceTime || placeholder;
 }
 
 // Format date for display
@@ -117,10 +146,10 @@ onMounted(() => {
             <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
             <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
         </ActionBar>
-        <!-- Parent container with race timing info (row 0), fixed podium (row 1) and scrollable pilots (row 2) -->
-        <GridLayout rows="auto, auto, *">
-            <!-- Fixed Podium Section -->
-            <StackLayout row="0" class="p-3 bg-white">
+        <!-- Parent container with conditional sections based on race state -->
+        <GridLayout :rows="podium && hasRaceStarted ? 'auto, auto, *' : hasRaceStarted ? 'auto, *' : '*'">
+            <!-- Fixed Podium Section - only show if race is finished -->
+            <StackLayout v-if="podium" row="0" class="p-3 bg-white">
                 <!-- Podium Section -->
                 <StackLayout>
                     <Label text="Podium" class="text-black text-center text-xl font-bold mb-2" />
@@ -134,17 +163,18 @@ onMounted(() => {
                     </GridLayout>
                 </StackLayout>
             </StackLayout>
-            <!-- Race Timing Section -->
-            <StackLayout row="1" class="p-2 bg-gray-100">
-                <GridLayout columns="auto, *, auto, *" class="bg-transparent">
+            <!-- Race Timing Section - only show if race has started -->
+            <StackLayout v-if="hasRaceStarted" :row="podium ? 1 : 0" class="p-2 bg-gray-100">
+                <GridLayout :columns="raceDuration ? 'auto, *, auto, 2*, auto' : 'auto, *, auto, *'" class="bg-transparent">
                     <Label col="0" text="Start:" class="text-gray-600 text-sm font-bold" />
                     <Label col="1" :text="formatDateTime(props.race.Start)" class="text-black text-sm" />
                     <Label col="2" text="End:" class="text-gray-600 text-sm font-bold" />
                     <Label col="3" :text="formatDateTime(props.race.End)" class="text-black text-sm" />
+                    <Label v-if="raceDuration" col="4" :text="'Duration: ' + raceDuration" class="text-gray-600 text-sm font-bold text-right" />
                 </GridLayout>
             </StackLayout>
             <!-- Scrollable All Pilots Section -->
-            <ScrollView row="2">
+            <ScrollView :row="podium && hasRaceStarted ? 2 : hasRaceStarted ? 1 : 0">
                 <StackLayout class="p-3 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
                     <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"

@@ -49,10 +49,11 @@ async function fetchRoundDetails(eventId: string, roundId: string) {
 }
 
 function getRaceTime(result: any) {
+    const placeholder = result.Position ? 'DNF' : '-';
     if (props.round.EventType === 'TimeTrial') {
-        return result.PbLapTime || 'DNF';
+        return result.PbLapTime || placeholder;
     }
-    return result.RaceTime || 'DNF';
+    return result.RaceTime || placeholder;
 }
 
 onMounted(() => {
