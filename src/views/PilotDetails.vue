@@ -156,7 +156,9 @@ onMounted(() => {
                   :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
               </GridLayout>
             </GridLayout>
-            <GridLayout v-if="getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID).length > 0"
+            <Label v-if="raceSummaries[round.ID]?.LapCount === 0" class="text-white text-center">No laps
+              completed</Label>
+            <GridLayout v-else-if="getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID).length > 0"
               :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *" class="bg-transparent">
               <!-- Header Row -->
               <Label row="0" col="0" text="Lap" class="text-white font-bold"
@@ -170,7 +172,7 @@ onMounted(() => {
                 <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)" class="text-white" />
               </template>
             </GridLayout>
-            <Label v-else-if="!raceSummaries[round.ID]?.Position" class="text-white text-center">No data
+            <Label v-else-if="!(raceSummaries[round.ID]?.LapCount > 0)" class="text-white text-center">No data
               available</Label>
             <Label v-else class="text-white text-center">Loading lap times...</Label>
           </StackLayout>
