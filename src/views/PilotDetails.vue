@@ -142,7 +142,7 @@ onMounted(() => {
                     <Label row="1" :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')"
                       class="text-green-500 mr-2" />
                     <Label v-if="round.EventType !== 'TimeTrial'" row="2"
-                      :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || 'DNF')" class="text-white mr-2" />
+                      :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || (raceSummaries[round.ID]?.Position?'DNF':'-'))" class="text-white mr-2" />
                     <Label row="3" :text="raceSummaries[round.ID]?.LapCount" class="text-white mr-2" />
                   </GridLayout>[]
                 </GridLayout>
