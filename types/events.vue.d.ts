@@ -12,8 +12,17 @@ export interface ChannelType {
 
 export interface ClubType {
     ID: string;
+    Creation:string;
     Name: string;
+    Visible: true,
     LogoUrl: string;
+    BannerUrl: string
+    PrimaryColor: string,
+    TextColor: string,
+    Address: string,
+    Latitude: number,
+    Longitude: number,
+    Timezone:string
 }
 
 export interface EventType {
