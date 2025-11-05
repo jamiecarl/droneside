@@ -29,18 +29,21 @@ const pageTitle = computed(() => {
 // Get reference to child components for refresh functionality
 const exploreRef = ref();
 const clubsRef = ref();
+const dashboardRef = ref();
 
 function refreshData() {
-  if (activeTab.value === 'explore' && exploreRef.value) {
+  if (activeTab.value === 'home' && dashboardRef.value) {
+    dashboardRef.value.refreshData();
+  } else if (activeTab.value === 'explore' && exploreRef.value) {
     exploreRef.value.refreshData();
   } else if (activeTab.value === 'clubs' && clubsRef.value) {
     clubsRef.value.refreshData();
   }
 }
 
-// Show refresh button only for tabs that have data to refresh
+// Show refresh button for all tabs
 const showRefreshButton = computed(() => {
-  return activeTab.value === 'explore' || activeTab.value === 'clubs';
+  return true;
 });
 </script>
 
@@ -55,7 +58,7 @@ const showRefreshButton = computed(() => {
       <GridLayout rows="*, auto, auto">
         <!-- Main Content Area -->
         <ContentView row="0">
-          <Dashboard v-if="activeTab === 'home'" />
+          <Dashboard v-if="activeTab === 'home'" ref="dashboardRef" />
           <Explore v-else-if="activeTab === 'explore'" ref="exploreRef" />
           <Clubs v-else-if="activeTab === 'clubs'" ref="clubsRef" />
         </ContentView>
