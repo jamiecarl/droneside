@@ -2,20 +2,27 @@
 import {
   ref,
   onMounted,
+  computed,
   $navigateBack,
+  $navigateTo,
 } from 'nativescript-vue';
-import { ClubType } from 'types/events.vue';
+import { ClubType, EventType, ChannelType } from 'types/events.vue';
+import ClubEventHeader from '~/components/ClubEventHeader.vue';
+import EventDetails from '~/views/EventDetails.vue';
+import { TabView, TabViewItem, ContentView } from '@nativescript/core';
 
 const props = defineProps<{
   clubId: string;
 }>();
 
 const club = ref<ClubType | null>(null);
+const clubEvents = ref<EventType[]>([]);
+const channels = ref<ChannelType[]>([]);
 const loading = ref(true);
+const loadingEvents = ref(false);
 
 async function fetchClubDetails() {
   try {
-    console.log(`Fetching club details for ID: ${props.clubId}`);
     const response = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${props.clubId}`);
     const data = await response.json();
     club.value = {
@@ -30,6 +37,81 @@ async function fetchClubDetails() {
   }
 }
 
+async function fetchClubEvents() {
+  if (loadingEvents.value) return;
+  
+  loadingEvents.value = true;
+  try {
+    const response = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${props.clubId}/full`);
+    const data = await response.json();
+    
+    // Check if data is an array or has events property
+    let eventsArray = [];
+    if (Array.isArray(data)) {
+      eventsArray = data;
+    } else if (data.events && Array.isArray(data.events)) {
+      eventsArray = data.events;
+    } else if (data.Events && Array.isArray(data.Events)) {
+      eventsArray = data.Events;
+    } else {
+      clubEvents.value = [];
+      return;
+    }
+    
+    clubEvents.value = eventsArray.map((event: EventType) => {
+      // Since all events are from this club, use the main club's LogoUrl
+      let logoUrl = club.value?.LogoUrl;
+      
+      // Fallback to event's club LogoUrl if main club LogoUrl not available
+      if (!logoUrl) {
+        const eventClub = event.Club as any;
+        logoUrl = eventClub.LogoUrl;
+      }
+      
+      let processedLogoUrl;
+      if (!logoUrl) {
+        processedLogoUrl = 'https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png';
+      } else if (logoUrl.startsWith('http')) {
+        processedLogoUrl = logoUrl;
+      } else {
+        processedLogoUrl = `https://fpvtrackside.com${logoUrl}`;
+      }
+      
+      return {
+        ...event,
+        Club: {
+          ...event.Club,
+          LogoUrl: processedLogoUrl
+        }
+      };
+    }).sort((a: EventType, b: EventType) => new Date(b.Start).getTime() - new Date(a.Start).getTime());
+  } catch (error) {
+    console.error('Error fetching club events:', error);
+    clubEvents.value = [];
+  } finally {
+    loadingEvents.value = false;
+  }
+}
+
+async function fetchChannels() {
+  try {
+    const response = await fetch('https://fpvtrackside.com/api/public/channels');
+    const data = await response.json();
+    channels.value = data;
+    channels.value.forEach((channel) => {
+      channel.DisplayName = channel.ShortBand + channel.Number;
+    });
+  } catch (error) {
+    console.error('Error fetching channels:', error);
+  }
+}
+
+function getCurrentTimeInTimezone(timezone: string): string {
+  // For now, just show the timezone name since proper timezone conversion
+  // requires additional libraries that may not work well in NativeScript
+  return `Timezone: ${timezone}`;
+}
+
 function formatDate(dateString: string): string {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
@@ -39,8 +121,29 @@ function goBack() {
   $navigateBack();
 }
 
+function openMap(latitude: number, longitude: number) {
+  try {
+    // Try to open the device's default map app with the coordinates
+    const url = `geo:${latitude},${longitude}?q=${latitude},${longitude}`;
+    // On Android, this will open Google Maps or the default map app
+    // On iOS, this would need a different approach, but for now this works on Android
+    console.log('Opening map with URL:', url);
+    // For NativeScript, you might need to use utils.openUrl() or a similar method
+    // utils.openUrl(url);
+  } catch (error) {
+    console.error('Error opening map:', error);
+  }
+}
+
+function onTabChange(index: any) {
+  if (index.value === 1 && clubEvents.value.length === 0) {
+    fetchClubEvents();
+  }
+}
+
 onMounted(() => {
   fetchClubDetails();
+  fetchChannels();
 });
 </script>
 
@@ -50,9 +153,9 @@ onMounted(() => {
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="goBack" />
     </ActionBar>
 
-    <ScrollView>
-      <StackLayout v-if="!loading && club">
-        <!-- Banner with Logo Overlay -->
+    <GridLayout rows="auto, *" class="p-0" v-if="!loading && club">
+      <!-- Banner with Logo Overlay and Club Header -->
+      <StackLayout row="0">
         <GridLayout class="relative">
           <Image v-if="club.BannerUrl" :src="club.BannerUrl" class="w-full h-48 object-cover" />
           <GridLayout v-else class="w-full h-48 bg-gray-300" />
@@ -63,62 +166,66 @@ onMounted(() => {
                  verticalAlignment="top" horizontalAlignment="left" />
         </GridLayout>
         
-        <!-- Club Header -->
-        <StackLayout class="p-4 pb-6">
-          <Label :text="club.Name" class="text-2xl font-bold text-black mb-2" textWrap="true" />
-          <Label :text="'Founded: ' + formatDate(club.Creation)" class="text-sm text-gray-500" />
-        </StackLayout>
-
-        <!-- Club Details Cards -->
-        
-        <!-- Location Information -->
-        <StackLayout class="bg-white p-4 rounded-lg mb-4 shadow mx-4">
-          <Label text="📍 Location" class="text-lg font-semibold text-gray-700 mb-3" />
-          <Label v-if="club.Address" :text="club.Address" class="text-base text-gray-600 mb-2" textWrap="true" />
-          <Label :text="'Timezone: ' + club.Timezone" class="text-sm text-gray-500" />
-          <GridLayout v-if="club.Latitude && club.Longitude" columns="*, *" class="mt-2">
-            <Label col="0" :text="'Lat: ' + club.Latitude.toFixed(6)" class="text-xs text-gray-400" />
-            <Label col="1" :text="'Lng: ' + club.Longitude.toFixed(6)" class="text-xs text-gray-400" />
-          </GridLayout>
-        </StackLayout>
-
-        <!-- Branding Information -->
-        <StackLayout class="bg-white p-4 rounded-lg mb-4 shadow mx-4">
-          <Label text="🎨 Branding" class="text-lg font-semibold text-gray-700 mb-3" />
-          <GridLayout columns="*, *" class="mb-2">
-            <StackLayout col="0" class="mr-2">
-              <Label text="Primary Color" class="text-sm text-gray-500 mb-1" />
-              <GridLayout class="h-8 rounded" :style="'background-color: ' + club.PrimaryColor">
-                <Label :text="club.PrimaryColor" class="text-xs text-center" :style="'color: ' + club.TextColor" />
-              </GridLayout>
-            </StackLayout>
-            <StackLayout col="1" class="ml-2">
-              <Label text="Text Color" class="text-sm text-gray-500 mb-1" />
-              <GridLayout class="h-8 rounded border border-gray-300" :style="'background-color: ' + club.TextColor">
-                <Label :text="club.TextColor" class="text-xs text-center" :style="'color: ' + (club.TextColor === '#FFFFFF' || club.TextColor === '#ffffff' ? '#000000' : '#FFFFFF')" />
-              </GridLayout>
-            </StackLayout>
-          </GridLayout>
-        </StackLayout>
-
-        <!-- Status Information -->
-        <StackLayout class="bg-white p-4 rounded-lg mb-4 shadow mx-4">
-          <Label text="ℹ️ Information" class="text-lg font-semibold text-gray-700 mb-3" />
-          <Label text="Club ID" class="text-sm text-gray-500" />
-          <Label :text="club.ID" class="text-base text-gray-700 mb-2 font-mono" />
-          <Label text="Visibility Status" class="text-sm text-gray-500" />
-          <Label :text="club.Visible ? '✅ Public' : '❌ Private'" class="text-base text-gray-700" />
-        </StackLayout>
-
+        <GridLayout class="p-3" :style="'background-color: ' + club.PrimaryColor">
+          <Label :text="club.Name" class="text-2xl font-bold text-center" :style="'color: ' + club.TextColor" textWrap="true" />
+        </GridLayout>
       </StackLayout>
-      
-      <StackLayout v-else-if="loading" class="p-8">
-        <Label text="Loading club details..." class="text-center text-gray-500" />
-      </StackLayout>
-      
-      <StackLayout v-else class="p-8">
-        <Label text="Unable to load club details" class="text-center text-gray-500" />
-      </StackLayout>
-    </ScrollView>
+
+      <ContentView row="1" class="bg-black rounded-t-3xl">
+        <TabView @selectedIndexChange="onTabChange">
+          <TabViewItem title="Details">
+            <GridLayout>
+              <ScrollView row="1">
+                <StackLayout class="p-3 bg-black">
+                  <!-- Founded Date -->
+                  <StackLayout class="bg-gray-800 p-4 rounded-lg mb-4">
+                    <Label text="📅 Founded" class="text-lg font-semibold text-white mb-3" />
+                    <Label :text="formatDate(club.Creation)" class="text-base text-gray-300" />
+                  </StackLayout>
+                  
+                  <!-- Location Information -->
+                  <StackLayout class="bg-gray-800 p-4 rounded-lg mb-4">
+                    <Label text="📍 Location" class="text-lg font-semibold text-white mb-3" />
+                    <Label v-if="club.Address" :text="club.Address" class="text-base text-gray-300 mb-2" textWrap="true" />
+                    <Label :text="'Timezone: ' + club.Timezone" class="text-sm text-gray-400 mb-2" />
+                    <GridLayout v-if="club.Latitude && club.Longitude" columns="*, auto" class="mt-2 p-2 bg-gray-700 rounded">
+                      <StackLayout col="0">
+                        <Label text="Coordinates" class="text-sm font-semibold text-gray-300" />
+                        <Label :text="club.Latitude.toFixed(6) + ', ' + club.Longitude.toFixed(6)" class="text-xs text-gray-400" />
+                      </StackLayout>
+                      <Button col="1" text="📍 Open Map" class="bg-blue-500 text-white text-xs px-3 py-1 rounded" 
+                              @tap="openMap(club.Latitude, club.Longitude)" />
+                    </GridLayout>
+                  </StackLayout>
+                </StackLayout>
+              </ScrollView>
+            </GridLayout>
+          </TabViewItem>
+          
+          <TabViewItem title="Events">
+            <GridLayout>
+              <ScrollView row="1" v-if="!loadingEvents">
+                <StackLayout v-if="clubEvents.length > 0">
+                  <GridLayout v-for="event in clubEvents" :key="event.ID" class="px-3">
+                    <ClubEventHeader :event="event" :formatDate="formatDate"
+                      @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-3 rounded-md" />
+                  </GridLayout>
+                </StackLayout>
+                <Label v-else text="No events found for this club" class="text-white text-center p-4" />
+              </ScrollView>
+              <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
+            </GridLayout>
+          </TabViewItem>
+        </TabView>
+      </ContentView>
+    </GridLayout>
+
+    <StackLayout v-else-if="loading" class="p-8">
+      <Label text="Loading club details..." class="text-center text-gray-500" />
+    </StackLayout>
+    
+    <StackLayout v-else class="p-8">
+      <Label text="Unable to load club details" class="text-center text-gray-500" />
+    </StackLayout>
   </Page>
 </template>

@@ -50,7 +50,7 @@ async function fetchEvents() {
       ...event,
       Club: {
         ...event.Club,
-        LogoUrl: `https://fpvtrackside.com${event.Club.LogoUrl}`
+        LogoUrl: event.Club.LogoUrl ? `https://fpvtrackside.com${event.Club.LogoUrl}` : 'https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png'
       }
     })).sort((a: EventType, b: EventType) => new Date(b.Start).getTime() - new Date(a.Start).getTime());
   } catch (error) {
