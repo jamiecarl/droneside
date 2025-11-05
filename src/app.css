@@ -14,13 +14,23 @@ GridLayout {
 /* Bottom Toolbar Styling */
 .bottom-toolbar {
   background-color: #000000;
-  border-top: 1px solid #333333;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
   elevation: 8;
   android-elevation: 8;
+  padding: 8px 0 12px 0;
+  margin-bottom: 0;
+}
+
+/* Toolbar Separator */
+.toolbar-separator {
+  background-color: #333333;
+  height: 1px;
 }
 
 .tab-item {
   transition: all 0.2s ease-in-out;
+  padding: 8px 4px;
+  vertical-align: middle;
 }
 
 .tab-item:active {
@@ -30,16 +40,21 @@ GridLayout {
 
 /* Tab icon and text styling */
 .tab-icon {
-  font-size: 24px;
-  margin-bottom: 2px;
+  font-size: 20px;
+  margin-bottom: 4px;
   transition: all 0.2s ease-in-out;
+  vertical-align: middle;
+  text-align: center;
 }
 
 .tab-text {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-top: 2px;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .tab-active .tab-icon,

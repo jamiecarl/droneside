@@ -52,7 +52,7 @@ const showRefreshButton = computed(() => {
         <ActionItem v-if="showRefreshButton" text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
       </ActionBar>
 
-      <GridLayout rows="*, auto">
+      <GridLayout rows="*, auto, auto">
         <!-- Main Content Area -->
         <ContentView row="0">
           <Dashboard v-if="activeTab === 'home'" />
@@ -60,22 +60,25 @@ const showRefreshButton = computed(() => {
           <Clubs v-else-if="activeTab === 'clubs'" ref="clubsRef" />
         </ContentView>
 
+        <!-- Toolbar Separator -->
+        <StackLayout row="1" class="toolbar-separator"></StackLayout>
+
         <!-- Bottom Toolbar -->
-        <GridLayout row="1" columns="*, *, *" class="bottom-toolbar h-16" orientation="horizontal">
+        <GridLayout row="2" columns="*, *, *" class="bottom-toolbar" orientation="horizontal">
           <!-- Home Tab -->
-          <StackLayout col="0" class="tab-item p-3 text-center" :class="activeTab === 'home' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('home')">
+          <StackLayout col="0" class="tab-item text-center" :class="activeTab === 'home' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('home')">
             <Label text="⌂" class="tab-icon" />
             <Label text="Home" class="tab-text" />
           </StackLayout>
 
           <!-- Explore Tab -->
-          <StackLayout col="1" class="tab-item p-3 text-center" :class="activeTab === 'explore' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('explore')">
+          <StackLayout col="1" class="tab-item text-center" :class="activeTab === 'explore' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('explore')">
             <Label text="⌘" class="tab-icon" />
             <Label text="Explore" class="tab-text" />
           </StackLayout>
 
           <!-- Clubs Tab -->
-          <StackLayout col="2" class="tab-item p-3 text-center" :class="activeTab === 'clubs' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('clubs')">
+          <StackLayout col="2" class="tab-item text-center" :class="activeTab === 'clubs' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('clubs')">
             <Label text="◉" class="tab-icon" />
             <Label text="Clubs" class="tab-text" />
           </StackLayout>
