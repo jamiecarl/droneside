@@ -2,8 +2,10 @@
 import {
   ref,
   onMounted,
+  $navigateTo,
 } from 'nativescript-vue';
 import { ClubType } from 'types/events.vue';
+import ClubDetails from '~/views/ClubDetails.vue';
 
 const clubs = ref<ClubType[]>([]);
 const loadingClubs = ref(true);
@@ -49,13 +51,16 @@ onMounted(() => {
   <GridLayout>
     <ListView v-if="!loadingClubs && clubs.length > 0" :items="clubs">
       <template #default="{ item: club }">
-        <GridLayout class="px-3 py-3 bg-white mb-2 mx-2 rounded-md" columns="auto, *" rows="auto">
-          <Image v-if="club.LogoUrl !== null" col="0" :src="club.LogoUrl" class="h-16 w-16 object-cover rounded-lg mr-3" />
-          <Image v-else col="0" src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" class="h-16 w-16 object-cover rounded-lg mr-3" />
-          <StackLayout col="1" class="bg-transparent">
-            <Label :text="club.Name" class="text-lg font-bold text-black" />
-            <Label :text="club.Timezone" class="text-sm text-gray-500" />
-          </StackLayout>
+        <GridLayout class="px-3">
+          <GridLayout columns="auto, *" class="bg-white p-4 mt-3 rounded-md"
+                      @tap="$navigateTo(ClubDetails, { props: { clubId: club.ID } })">
+            <Image v-if="club.LogoUrl !== null" col="0" :src="club.LogoUrl" class="h-24 w-24 object-cover rounded-lg mr-3" />
+            <Image v-else col="0" src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" class="h-24 w-24 object-cover rounded-lg mr-3" />
+            <StackLayout col="1">
+              <Label :text="club.Name" class="text-md font-bold text-black mb-2" />
+              <Label :text="club.Timezone" class="text-sm text-gray-400" />
+            </StackLayout>
+          </GridLayout>
         </GridLayout>
       </template>
     </ListView>
