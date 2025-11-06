@@ -7,6 +7,6 @@ export default {
   android: {
     v8Flags: '--expose_gc',
     markingMode: 'none',
-    versionCode: 1
+    versionCode: 2
   }
 } as NativeScriptConfig;
