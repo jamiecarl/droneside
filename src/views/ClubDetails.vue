@@ -172,7 +172,7 @@ onMounted(() => {
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="goBack" />
       <ActionItem :text="isStarred ? '★' : '☆'" 
                   @tap="toggleFavorite"
-                  class="text-yellow-400 text-2xl font-bold" />
+                  class="text-yellow-400 text-4xl font-bold" />
     </ActionBar>
 
     <GridLayout rows="auto, *" class="p-0" v-if="!loading && club">

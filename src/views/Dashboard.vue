@@ -131,7 +131,7 @@ onMounted(() => {
                @tap="goToClubDetails" />
         
         <StackLayout col="1" verticalAlignment="center">
-          <Label text="★ Your Favorite Club" class="text-yellow-400 text-lg font-bold mb-1" />
+          <Label text="★ Your Home Club" class="text-yellow-400 text-lg font-bold mb-1" />
           <Label :text="selectedClub.Name" class="text-white text-xl font-bold mb-1" textWrap="true" style="line-height: 1.2;" />
           <Label v-if="recentAndUpcomingEvents.length > 0" :text="`${recentAndUpcomingEvents.length} Recent & Upcoming Events`" class="text-gray-300 text-sm" />
           <Label v-else text="No recent events" class="text-gray-300 text-sm" />
@@ -149,7 +149,7 @@ onMounted(() => {
       </ScrollView>
 
       <StackLayout v-else row="1" class="p-8 text-center">
-        <Label text="📅" class="text-6xl mb-4 text-gray-500" />
+        <Label text="◯" class="text-6xl mb-4 text-gray-500" />
         <Label text="No events to show" class="text-xl text-gray-500 mb-2" />
         <Label text="Check the Explore tab for more events" class="text-sm text-gray-400" textWrap="true" />
       </StackLayout>

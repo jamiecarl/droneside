@@ -23,8 +23,8 @@ GridLayout {
 
 /* Toolbar Separator */
 .toolbar-separator {
-  background-color: #333333;
-  height: 1px;
+  background-color: #444444;
+  height: 2px;
 }
 
 .tab-item {
