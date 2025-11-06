@@ -4,6 +4,7 @@ import { EventType, ChannelType, ClubType } from 'types/events.vue';
 import { getFavoriteClub } from '~/utils/storage';
 import ClubEventHeader from '~/components/ClubEventHeader.vue';
 import EventDetails from '~/views/EventDetails.vue';
+import ClubDetails from '~/views/ClubDetails.vue';
 
 const selectedClub = ref<ClubType | null>(null);
 const clubEvents = ref<EventType[]>([]);
@@ -85,6 +86,12 @@ function refreshData() {
   loadFavoriteClubEvents();
 }
 
+function goToClubDetails() {
+  if (selectedClub.value) {
+    $navigateTo(ClubDetails, { props: { clubId: selectedClub.value.ID } });
+  }
+}
+
 // Expose refreshData method to parent component
 defineExpose({
   refreshData
@@ -116,10 +123,12 @@ onMounted(() => {
       <GridLayout row="0" columns="auto, *" class="p-4 bg-gray-800 mb-4">
         <Image col="0" v-if="selectedClub.LogoUrl" :src="selectedClub.LogoUrl" 
                class="w-32 object-cover rounded-lg mr-4" 
-               verticalAlignment="center" horizontalAlignment="left" />
+               verticalAlignment="center" horizontalAlignment="left"
+               @tap="goToClubDetails" />
         <Image col="0" v-else src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" 
                class="w-16 object-cover rounded-lg mr-4" 
-               verticalAlignment="center" horizontalAlignment="left" />
+               verticalAlignment="center" horizontalAlignment="left"
+               @tap="goToClubDetails" />
         
         <StackLayout col="1" verticalAlignment="center">
           <Label text="★ Your Favorite Club" class="text-yellow-400 text-lg font-bold mb-1" />
