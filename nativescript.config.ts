@@ -6,6 +6,7 @@ export default {
   appResourcesPath: 'App_Resources',
   android: {
     v8Flags: '--expose_gc',
-    markingMode: 'none'
+    markingMode: 'none',
+    versionCode: 1
   }
 } as NativeScriptConfig;

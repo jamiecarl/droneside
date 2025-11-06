@@ -4,6 +4,15 @@
   "main": "src/app.ts",
   "version": "1.0.0",
   "private": true,
+  "nativeScript": {
+    "id": "com.jamiecarl.droneside",
+    "tns-ios": {
+      "version": "8.7.0"
+    },
+    "tns-android": {
+      "version": "8.8.6"
+    }
+  },
   "dependencies": {
     "@nativescript/core": "~8.7.0",
     "nativescript-vue": "3.0.0-rc.2"

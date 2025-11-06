@@ -6,5 +6,18 @@ module.exports = (env) => {
 	// Learn how to customize:
 	// https://docs.nativescript.org/webpack
 
-	return webpack.resolveConfig();
+	const config = webpack.resolveConfig();
+
+	// Add fallbacks for Node.js core modules that are no longer polyfilled in webpack 5
+	config.resolve = config.resolve || {};
+	config.resolve.fallback = {
+		...config.resolve.fallback,
+		"url": false,
+		"util": false,
+		"path": false,
+		"fs": false,
+		"os": false
+	};
+
+	return config;
 };
