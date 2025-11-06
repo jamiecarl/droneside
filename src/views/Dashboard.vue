@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, $navigateTo } from 'nativescript-vue';
 import { EventType, ChannelType, ClubType } from 'types/events.vue';
-import { getFavoriteClub } from '~/utils/storage';
+import { getHomeClub } from '~/utils/storage';
 import ClubEventHeader from '~/components/ClubEventHeader.vue';
 import EventDetails from '~/views/EventDetails.vue';
 import ClubDetails from '~/views/ClubDetails.vue';
@@ -11,16 +11,16 @@ const clubEvents = ref<EventType[]>([]);
 const channels = ref<ChannelType[]>([]);
 const loading = ref(false);
 
-async function loadFavoriteClubEvents() {
-  const favoriteClubId = getFavoriteClub();
-  if (!favoriteClubId) {
+async function loadHomeClubEvents() {
+  const homeClubId = getHomeClub();
+  if (!homeClubId) {
     return;
   }
 
   loading.value = true;
   try {
     // Fetch club details
-    const clubResponse = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${favoriteClubId}`);
+    const clubResponse = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${homeClubId}`);
     const clubData = await clubResponse.json();
     selectedClub.value = {
       ...clubData,
@@ -29,7 +29,7 @@ async function loadFavoriteClubEvents() {
     };
 
     // Fetch club events
-    const eventsResponse = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${favoriteClubId}/full`);
+    const eventsResponse = await fetch(`https://fpvtrackside.com/api/public/clubs/id/${homeClubId}/full`);
     const eventsData = await eventsResponse.json();
     
     let eventsArray = [];
@@ -57,7 +57,7 @@ async function loadFavoriteClubEvents() {
       channel.DisplayName = channel.ShortBand + channel.Number;
     });
   } catch (error) {
-    console.error('Error loading favorite club events:', error);
+    console.error('Error loading home club events:', error);
   } finally {
     loading.value = false;
   }
@@ -83,7 +83,7 @@ const recentAndUpcomingEvents = computed(() => {
 });
 
 function refreshData() {
-  loadFavoriteClubEvents();
+  loadHomeClubEvents();
 }
 
 function goToClubDetails() {
@@ -98,7 +98,7 @@ defineExpose({
 });
 
 onMounted(() => {
-  loadFavoriteClubEvents();
+  loadHomeClubEvents();
 });
 </script>
 
@@ -119,7 +119,7 @@ onMounted(() => {
     </StackLayout>
 
     <GridLayout v-else-if="selectedClub" rows="auto, *">
-      <!-- Favorite Club Header -->
+      <!-- Home Club Header -->
       <GridLayout row="0" columns="auto, *" class="p-4 bg-gray-800 mb-4">
         <Image col="0" v-if="selectedClub.LogoUrl" :src="selectedClub.LogoUrl" 
                class="w-32 object-cover rounded-lg mr-4" 
@@ -157,7 +157,7 @@ onMounted(() => {
 
     <StackLayout v-else-if="loading" class="p-8 text-center">
       <ActivityIndicator busy="true" class="h-16 w-16 mb-4" />
-      <Label text="Loading your favorite club..." class="text-center text-gray-500" />
+      <Label text="Loading your home club..." class="text-center text-gray-500" />
     </StackLayout>
   </GridLayout>
 </template>

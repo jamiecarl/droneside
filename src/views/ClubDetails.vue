@@ -10,7 +10,7 @@ import { ClubType, EventType, ChannelType } from 'types/events.vue';
 import ClubEventHeader from '~/components/ClubEventHeader.vue';
 import EventDetails from '~/views/EventDetails.vue';
 import { TabView, TabViewItem, ContentView } from '@nativescript/core';
-import { setFavoriteClub, getFavoriteClub, removeFavoriteClub, isFavoriteClub } from '~/utils/storage';
+import { setHomeClub, getHomeClub, removeHomeClub, isHomeClub } from '~/utils/storage';
 
 const props = defineProps<{
   clubId: string;
@@ -143,26 +143,26 @@ function onTabChange(index: any) {
   }
 }
 
-function toggleFavorite() {
+function toggleHomeClub() {
   if (isStarred.value) {
-    removeFavoriteClub();
+    removeHomeClub();
     isStarred.value = false;
-    console.log('Removed favorite club');
+    console.log('Removed home club');
   } else {
-    setFavoriteClub(props.clubId);
+    setHomeClub(props.clubId);
     isStarred.value = true;
-    console.log('Set favorite club:', props.clubId);
+    console.log('Set home club:', props.clubId);
   }
 }
 
-function checkIfFavorite() {
-  isStarred.value = isFavoriteClub(props.clubId);
+function checkIfHomeClub() {
+  isStarred.value = isHomeClub(props.clubId);
 }
 
 onMounted(() => {
   fetchClubDetails();
   fetchChannels();
-  checkIfFavorite();
+  checkIfHomeClub();
 });
 </script>
 
@@ -171,7 +171,7 @@ onMounted(() => {
     <ActionBar title="Racing Club" class="bg-red-600 text-white">
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="goBack" />
       <ActionItem :text="isStarred ? '★' : '☆'" 
-                  @tap="toggleFavorite"
+                  @tap="toggleHomeClub"
                   class="text-yellow-400 text-4xl font-bold" />
     </ActionBar>
 
