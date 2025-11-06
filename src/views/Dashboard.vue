@@ -113,12 +113,21 @@ onMounted(() => {
 
     <GridLayout v-else-if="selectedClub" rows="auto, *">
       <!-- Favorite Club Header -->
-      <StackLayout row="0" class="p-4 bg-gray-800 mb-4">
-        <Label text="★ Your Favorite Club" class="text-yellow-400 text-center text-lg font-bold mb-2" />
-        <Label :text="selectedClub.Name" class="text-white text-center text-xl font-bold mb-2" textWrap="true" />
-        <Label v-if="recentAndUpcomingEvents.length > 0" :text="`${recentAndUpcomingEvents.length} Recent & Upcoming Events`" class="text-gray-300 text-center text-sm" />
-        <Label v-else text="No recent events" class="text-gray-300 text-center text-sm" />
-      </StackLayout>
+      <GridLayout row="0" columns="auto, *" class="p-4 bg-gray-800 mb-4">
+        <Image col="0" v-if="selectedClub.LogoUrl" :src="selectedClub.LogoUrl" 
+               class="w-32 object-cover rounded-lg mr-4" 
+               verticalAlignment="center" horizontalAlignment="left" />
+        <Image col="0" v-else src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" 
+               class="w-16 object-cover rounded-lg mr-4" 
+               verticalAlignment="center" horizontalAlignment="left" />
+        
+        <StackLayout col="1" verticalAlignment="center">
+          <Label text="★ Your Favorite Club" class="text-yellow-400 text-lg font-bold mb-1" />
+          <Label :text="selectedClub.Name" class="text-white text-xl font-bold mb-1" textWrap="true" style="line-height: 1.2;" />
+          <Label v-if="recentAndUpcomingEvents.length > 0" :text="`${recentAndUpcomingEvents.length} Recent & Upcoming Events`" class="text-gray-300 text-sm" />
+          <Label v-else text="No recent events" class="text-gray-300 text-sm" />
+        </StackLayout>
+      </GridLayout>
 
       <!-- Club Events List -->
       <ScrollView row="1" v-if="recentAndUpcomingEvents.length > 0">
