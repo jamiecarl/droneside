@@ -124,12 +124,12 @@ onMounted(() => {
   <Page>
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
-      <Label text="Event Rounds" class="font-bold text-lg" />
+      <Label text="Event Detail" class="font-bold text-lg" />
       <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
         @tap="fetchEventDetails(props.event.ID); fetchPilots(props.event.ID);" />
     </ActionBar>
     <GridLayout rows="auto, *" class="p-0">
-      <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" />
+      <ClubEventHeader row="0" :event="props.event" :formatDate="formatDate" :enableClubNavigation="true" />
       <ContentView row="1" class="bg-black rounded-t-3xl">
         <TabView @selectedIndexChange="onTabChange">
           <TabViewItem title="Rounds">
