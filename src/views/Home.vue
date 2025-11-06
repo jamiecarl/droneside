@@ -1,11 +1,71 @@
 <script lang="ts" setup>
-import { ref, computed } from 'nativescript-vue';
+import { ref, computed, onMounted } from 'nativescript-vue';
+import { Application, Device, Screen } from '@nativescript/core';
 import Dashboard from './Dashboard.vue';
 import Explore from './Explore.vue';
 import Clubs from './Clubs.vue';
 
 // Tab navigation state
 const activeTab = ref<'home' | 'explore' | 'clubs'>('home');
+
+// Safe area inset for bottom navigation
+const bottomSafeAreaInset = ref(0);
+
+// Function to calculate navigation bar height
+function calculateBottomInset() {
+  try {
+    const activity = Application.android.foregroundActivity || Application.android.startActivity;
+    if (activity) {
+      // Get navigation bar height from Android system resources
+      const resources = activity.getResources();
+      const resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
+      if (resourceId > 0) {
+        // Use raw pixel value directly - no DIP conversion
+        bottomSafeAreaInset.value = resources.getDimensionPixelSize(resourceId);
+        return true;
+      } else {
+        bottomSafeAreaInset.value = 128; // Fallback in pixels
+        return false;
+      }
+    }
+  } catch (error) {
+    bottomSafeAreaInset.value = 0; // Fallback in pixels
+    return false;
+  }
+}
+
+// Try multiple times to get the inset value
+function initializeBottomInset() {
+  // Try immediately
+  if (calculateBottomInset()) {
+    return;
+  }
+  
+  // Try after a short delay
+  setTimeout(() => {
+    if (calculateBottomInset()) {
+      return;
+    }
+    
+    // Try after app is fully loaded
+    setTimeout(() => {
+      calculateBottomInset();
+    }, 500);
+  }, 100);
+}
+
+// Initialize on mount
+onMounted(() => {
+  initializeBottomInset();
+});
+
+// Also listen for application events
+Application.on(Application.resumeEvent, () => {
+  calculateBottomInset();
+});
+
+// Initialize immediately when script loads (fallback)
+initializeBottomInset();
 
 // Tab navigation functions
 function setActiveTab(tab: 'home' | 'explore' | 'clubs') {
@@ -45,6 +105,13 @@ function refreshData() {
 const showRefreshButton = computed(() => {
   return true;
 });
+
+// Computed style for bottom toolbar with safe area
+const bottomToolbarStyle = computed(() => {
+  return {
+    paddingBottom: `${12 + bottomSafeAreaInset.value}px`
+  };
+});
 </script>
 
 <template>
@@ -67,7 +134,7 @@ const showRefreshButton = computed(() => {
         <StackLayout row="1" class="toolbar-separator"></StackLayout>
 
         <!-- Bottom Toolbar -->
-        <GridLayout row="2" columns="*, *, *" class="bottom-toolbar" orientation="horizontal">
+        <GridLayout row="2" columns="*, *, *" class="bottom-toolbar" :style="bottomToolbarStyle" orientation="horizontal">
           <!-- Home Tab -->
           <StackLayout col="0" class="tab-item text-center" :class="activeTab === 'home' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('home')">
             <Label text="⌂" class="tab-icon" />
