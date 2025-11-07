@@ -124,7 +124,7 @@ onMounted(() => {
   <Page>
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
-      <Label text="Event Detail" class="font-bold text-lg" />
+      <Label text="Event Details" class="font-bold text-lg" />
       <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
         @tap="fetchEventDetails(props.event.ID); fetchPilots(props.event.ID);" />
     </ActionBar>

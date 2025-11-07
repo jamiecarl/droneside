@@ -168,8 +168,9 @@ onMounted(() => {
 
 <template>
   <Page>
-    <ActionBar title="Racing Club" class="bg-red-600 text-white">
+    <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="goBack" />
+      <Label text="Club Details" class="font-bold text-lg" />
       <ActionItem :text="isStarred ? '★' : '☆'" 
                   @tap="toggleHomeClub"
                   class="text-yellow-400 text-4xl font-bold" />
@@ -195,7 +196,7 @@ onMounted(() => {
 
       <ContentView row="1" class="bg-black rounded-t-3xl">
         <TabView @selectedIndexChange="onTabChange">
-          <TabViewItem title="Details">
+          <TabViewItem title="Overview">
             <GridLayout>
               <ScrollView row="1">
                 <StackLayout class="p-3 bg-black">
