@@ -18,6 +18,7 @@ const selectedTabIndex = ref(0);
 
 // Date helpers
 const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
 // Computed filtered events based on selected tab
@@ -25,8 +26,12 @@ const upcomingEvents = computed(() => {
   return events.value.filter(event => {
     const eventStart = new Date(event.Start);
     const eventEnd = new Date(event.End);
-    // Future events (haven't started yet) or current events (started but not ended)
-    return eventStart > now || (eventStart <= now && eventEnd >= now);
+    const eventStartDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+    
+    // Include events that:
+    // 1. Start today or in the future (eventStartDate >= today)
+    // 2. OR are currently running (started in the past but haven't ended yet)
+    return eventStartDate >= today || (eventStart <= now && eventEnd >= now);
   });
 });
 
@@ -34,8 +39,13 @@ const recentEvents = computed(() => {
   return events.value.filter(event => {
     const eventStart = new Date(event.Start);
     const eventEnd = new Date(event.End);
-    // Events that ended in the last 30 days (but are not current/upcoming)
-    return eventStart < now && eventStart >= thirtyDaysAgo && eventEnd < now;
+    const eventStartDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+    
+    // Events that ended in the last 30 days but:
+    // 1. Did NOT start today or in the future (eventStartDate < today)
+    // 2. Are not currently running (eventEnd < now)
+    // 3. Started within the last 30 days (eventStart >= thirtyDaysAgo)
+    return eventStartDate < today && eventStart >= thirtyDaysAgo && eventEnd < now;
   });
 });
 
