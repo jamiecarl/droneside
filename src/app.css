@@ -29,7 +29,7 @@ GridLayout {
 
 .tab-item {
   transition: all 0.2s ease-in-out;
-  padding: 8px 4px;
+  padding: 32px 4px;
   vertical-align: middle;
 }
 

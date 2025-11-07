@@ -14,22 +14,28 @@ const bottomSafeAreaInset = ref(0);
 // Function to calculate navigation bar height
 function calculateBottomInset() {
   try {
+    if(android.os.Build.VERSION.SDK_INT < 35) {
+      bottomSafeAreaInset.value = 0;
+      return true;
+    }
     const activity = Application.android.foregroundActivity || Application.android.startActivity;
     if (activity) {
       // Get navigation bar height from Android system resources
       const resources = activity.getResources();
       const resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android");
       if (resourceId > 0) {
-        // Use raw pixel value directly - no DIP conversion
         bottomSafeAreaInset.value = resources.getDimensionPixelSize(resourceId);
         return true;
       } else {
-        bottomSafeAreaInset.value = 128; // Fallback in pixels
+        // Fallback based on Android version
+        const apiLevel = android.os.Build.VERSION.SDK_INT;
+        bottomSafeAreaInset.value = apiLevel >= 30 ? 80 : 0;
         return false;
       }
     }
   } catch (error) {
-    bottomSafeAreaInset.value = 0; // Fallback in pixels
+    console.log('Error calculating bottom inset:', error);
+    bottomSafeAreaInset.value = 60; // Conservative fallback
     return false;
   }
 }
