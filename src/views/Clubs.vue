@@ -68,9 +68,8 @@ onMounted(() => {
       <TextField col="0" v-model="searchText" 
                  hint="Search clubs by name..."
                  class="bg-white border border-gray-300 rounded-lg px-3 py-2 mr-2" />
-      <Label col="1" text="✕" 
+      <Label col="1" class="fa text-xl py-2 px-3" text="&#xf00d;"
              :class="searchText.trim() ? 'text-gray-600' : 'text-gray-300'"
-             class="text-xl py-2 px-3" 
              verticalAlignment="center"
              @tap="searchText.trim() ? searchText = '' : null" />
     </GridLayout>

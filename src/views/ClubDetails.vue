@@ -171,9 +171,15 @@ onMounted(() => {
     <ActionBar>
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="goBack" />
       <Label text="Club Details" class="font-bold text-lg" />
-      <ActionItem :text="isStarred ? '★' : '☆'" 
-                  @tap="toggleHomeClub"
-                  class="text-yellow-400 text-4xl font-bold" />
+      <ActionItem @tap="toggleHomeClub">
+        <Label class="fa text-center" 
+               :class="isStarred ? 'text-white text-3xl' : 'text-gray-900 text-4xl'"
+               text="&#xf015;" 
+               width="50" height="40" 
+               paddingRight="16"
+               verticalAlignment="center" 
+               horizontalAlignment="center" />
+      </ActionItem>
     </ActionBar>
 
     <GridLayout rows="auto, *" class="p-0" v-if="!loading && club">
@@ -202,13 +208,19 @@ onMounted(() => {
                 <StackLayout class="p-3 bg-black">
                   <!-- Founded Date -->
                   <StackLayout class="bg-gray-800 p-4 rounded-lg mb-4">
-                    <Label text="📅 Founded" class="text-lg font-semibold text-white mb-3" />
+                    <Label class="text-lg font-semibold text-white mb-3">
+                      <Span class="fa text-white">&#xf073;</Span>
+                      <Span text="  Founded" />
+                    </Label>
                     <Label :text="formatDate(club.Creation)" class="text-base text-gray-300" />
                   </StackLayout>
                   
                   <!-- Location Information -->
                   <StackLayout class="bg-gray-800 p-4 rounded-lg mb-4">
-                    <Label text="📍 Location" class="text-lg font-semibold text-white mb-3" />
+                    <Label class="text-lg font-semibold text-white mb-3">
+                      <Span class="fa text-white">&#xf041;</Span>
+                      <Span text="  Location" />
+                    </Label>
                     <Label v-if="club.Address" :text="club.Address" class="text-base text-gray-300 mb-2" textWrap="true" />
                     <Label :text="'Timezone: ' + club.Timezone" class="text-sm text-gray-400 mb-2" />
                     <GridLayout v-if="club.Latitude && club.Longitude" columns="*, auto" class="mt-2 p-2 bg-gray-700 rounded">

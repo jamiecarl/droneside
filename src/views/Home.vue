@@ -143,19 +143,19 @@ const bottomToolbarStyle = computed(() => {
         <GridLayout row="2" columns="*, *, *" class="bottom-toolbar" :style="bottomToolbarStyle" orientation="horizontal">
           <!-- Home Tab -->
           <StackLayout col="0" class="tab-item text-center" :class="activeTab === 'home' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('home')">
-            <Label text="⌂" class="tab-icon" />
+            <Label class="tab-icon fa" text="&#xf015;" />
             <Label text="Home" class="tab-text" />
           </StackLayout>
 
           <!-- Explore Tab -->
           <StackLayout col="1" class="tab-item text-center" :class="activeTab === 'explore' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('explore')">
-            <Label text="⌘" class="tab-icon" />
+            <Label class="tab-icon fa" text="&#xf002;" />
             <Label text="Explore" class="tab-text" />
           </StackLayout>
 
           <!-- Clubs Tab -->
           <StackLayout col="2" class="tab-item text-center" :class="activeTab === 'clubs' ? 'tab-active' : 'tab-inactive'" @tap="setActiveTab('clubs')">
-            <Label text="◉" class="tab-icon" />
+            <Label class="tab-icon fa" text="&#xf0c0;" />
             <Label text="Clubs" class="tab-text" />
           </StackLayout>
         </GridLayout>

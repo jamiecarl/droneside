@@ -106,7 +106,7 @@ onMounted(() => {
   <GridLayout rows="*">
     <StackLayout v-if="!selectedClub && !loading" class="p-8 text-center">
       <!-- Welcome Icon -->
-      <Label text="⌂" class="text-8xl mb-6 text-blue-500" />
+      <Label class="text-8xl mb-6 text-blue-500 fa" text="&#xf015;" />
       
       <!-- Welcome Message -->
       <Label text="Welcome to DroneSide" class="text-3xl font-bold text-white mb-4" textWrap="true" />
@@ -131,7 +131,12 @@ onMounted(() => {
                @tap="goToClubDetails" />
         
         <StackLayout col="1" verticalAlignment="center">
-          <Label text="★ Your Home Club" class="text-yellow-400 text-lg font-bold mb-1" />
+          <Label class="text-yellow-400 text-lg font-bold mb-1">
+            <FormattedString>
+              <Span class="fa" text="&#xf015;" />
+              <Span text=" Your Home Club" />
+            </FormattedString>
+          </Label>
           <Label :text="selectedClub.Name" class="text-white text-xl font-bold mb-1" textWrap="true" style="line-height: 1.2;" />
           <Label v-if="recentAndUpcomingEvents.length > 0" :text="`${recentAndUpcomingEvents.length} Recent & Upcoming Events`" class="text-gray-300 text-sm" />
           <Label v-else text="No recent events" class="text-gray-300 text-sm" />
