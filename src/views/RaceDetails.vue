@@ -215,7 +215,7 @@ onMounted(() => {
                             </GridLayout>
                         </GridLayout>
                         <!-- Lap Details Table: now only visible if rawRace exists -->
-                        <GridLayout v-if="!loadingRaces"
+                        <GridLayout v-if="!loadingRaces && getLapsForPilot(result.Pilot).length > 0"
                             :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`" columns="*, *"
                             class="bg-transparent">
                             <!-- Header Row -->
@@ -230,6 +230,14 @@ onMounted(() => {
                                     class="text-white" />
                             </template>
                         </GridLayout>
+                        
+                        <!-- No laps placeholder -->
+                        <StackLayout v-else-if="!loadingRaces && getLapsForPilot(result.Pilot).length === 0" class="p-4 text-center">
+                            <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf017;" />
+                            <Label text="No laps recorded" class="text-gray-400 text-base text-center mb-1" />
+                            <Label text="This pilot hasn't completed any valid laps" class="text-gray-500 text-sm text-center" />
+                        </StackLayout>
+                        
                         <Label v-else-if="loadingRaces" text="Loading race data..." class="text-white text-center" />
                     </StackLayout>
                 </StackLayout>
