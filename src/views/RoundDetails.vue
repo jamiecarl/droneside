@@ -85,7 +85,7 @@ onMounted(() => {
                         @tap="$navigateTo(RaceDetails, { props: { race, pilots: props.pilots, round: props.round } })">
                         <GridLayout columns="*, auto" class="mb-2 bg-transparent">
                             <Label :text="'Race #' + race.RaceNumber" class="text-white text-lg font-bold" />
-                            <Label col="1" :text="'Laps: ' + race.TargetLaps"
+                            <Label v-if="props.round.EventType !== 'TimeTrial'" col="1" :text="'Laps: ' + race.TargetLaps"
                                 class="text-white text-lg font-bold text-right" />
                         </GridLayout>
                         <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
