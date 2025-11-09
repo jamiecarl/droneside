@@ -78,7 +78,7 @@ onMounted(() => {
                 <Label :text="round.EventType" class="text-black text-base" />
             </StackLayout>
             <!-- Scrollable content -->
-            <ScrollView row="1" v-if="!loadingDetails">
+            <ScrollView row="1" v-if="!loadingDetails && raceDetails.length > 0">
                 <StackLayout class="p-3 bg-black">
                     <StackLayout v-for="(race, index) in raceDetails" :key="race.ID"
                         class="p-4 my-2 bg-gray-800 rounded-md"
@@ -99,6 +99,16 @@ onMounted(() => {
                     </StackLayout>
                 </StackLayout>
             </ScrollView>
+            
+            <!-- No races placeholder -->
+            <StackLayout row="1" v-else-if="!loadingDetails && raceDetails.length === 0" class="p-8 bg-black">
+                <StackLayout class="text-center">
+                    <Label class="fa text-gray-400 text-6xl mb-4 text-center" text="&#xf11e;" />
+                    <Label text="No races found" class="text-white text-xl font-semibold text-center mb-2" />
+                    <Label text="This round doesn't have any races" class="text-gray-400 text-base text-center" />
+                </StackLayout>
+            </StackLayout>
+            
             <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
         </GridLayout>
     </Page>
