@@ -206,7 +206,7 @@ onMounted(() => {
                                 <Label :text="formatRaceTime(result.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
                             </StackLayout>
                             <StackLayout col="1" class="bg-transparent text-center">
-                                <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                                <Label text="Best" class="text-gray-400 mb-1 text-base" />
                                 <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
                             </StackLayout>
                             <StackLayout col="2" class="bg-transparent text-center">
@@ -214,9 +214,9 @@ onMounted(() => {
                                 <Label :text="formatRaceTime(getRaceTime(result))" class="text-white text-base" />
                             </StackLayout>
                         </GridLayout>
-                        <!-- TimeTrial layout - only shows Best Lap -->
+                        <!-- TimeTrial layout - only shows Best -->
                         <StackLayout v-else class="bg-transparent mt-4 mb-5 text-xs text-center">
-                            <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                            <Label text="Best" class="text-gray-400 mb-1 text-base" />
                             <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
                         </StackLayout>
                         <!-- Lap Details Table: now only visible if rawRace exists -->
