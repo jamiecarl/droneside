@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'nativescript-vue';
+import { ref, onMounted, computed, $navigateTo } from 'nativescript-vue';
 import { RoundType, EventType, PilotType, ChannelType, PointsType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
@@ -98,6 +98,33 @@ function getPilotName(pilotId: string): string {
   return pilot ? pilot.Name : 'Unknown Pilot';
 }
 
+function getPilotPhotoURL(pilotId: string): string {
+  const pilot = pilots.value.find(pilot => pilot.ID === pilotId);
+  if (!pilot || !pilot.PhotoURL) {
+    return '~/assets/pilot.png';
+  }
+  
+  // If PhotoURL is a relative path, prepend the base URL
+  if (pilot.PhotoURL.startsWith('/')) {
+    return 'https://fpvtrackside.com' + pilot.PhotoURL;
+  }
+  
+  return pilot.PhotoURL;
+}
+
+function navigateToPilotFromLeaderboard(pilotId: string) {
+  const pilot = pilots.value.find(p => p.ID === pilotId);
+  if (pilot) {
+    $navigateTo(PilotDetails, {
+      props: {
+        pilot,
+        eventId: props.event.ID,
+        pilots: pilots.value
+      }
+    });
+  }
+}
+
 function formatDate(dateString: string): string {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
@@ -174,9 +201,12 @@ onMounted(() => {
               <ScrollView row="1" v-if="!loadingPoints">
                 <StackLayout class="p-3 bg-black">
                   <GridLayout v-for="(point, index) in sortedPoints" :key="point.PilotID"
-                    class="p-4 my-2 bg-gray-800 rounded-md" columns="*, auto">
-                    <Label col="0" :text="getPilotName(point.PilotID)" class="text-lg text-white" />
-                    <Label col="1" :text="point.Points" class="text-lg text-red-500 text-right" />
+                    class="p-4 my-2 bg-gray-800 rounded-md" columns="auto, *, auto"
+                    @tap="navigateToPilotFromLeaderboard(point.PilotID)">
+                    <Image col="0" :src="getPilotPhotoURL(point.PilotID)" 
+                           class="h-12 w-12 object-cover rounded-lg mr-3" />
+                    <Label col="1" :text="getPilotName(point.PilotID)" class="text-lg text-white" />
+                    <Label col="2" :text="point.Points" class="text-lg text-red-500 text-right" />
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
