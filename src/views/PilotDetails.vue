@@ -2,12 +2,12 @@
 import { computed } from 'nativescript-vue';
 import { GridLayout, StackLayout } from '@nativescript/core';
 import { defineProps, ref, onMounted } from 'nativescript-vue';
-import type { EventType, PilotType, RoundType, RawRaceDataType, RaceDetailType, LapType } from 'types/events.vue';
+import type { PilotType, RoundType, RawRaceDataType, RaceDetailType, LapType } from 'types/events.vue';
 import { formatRaceTime } from '~/utils/formatRaceTime';
 import RaceDetails from './RaceDetails.vue';
 import { get } from 'http';
 
-const props = defineProps<{ pilot: PilotType, event: EventType, pilots: PilotType[] }>();
+const props = defineProps<{ pilot: PilotType, eventId: string, pilots: PilotType[] }>();
 const loadingDetails = ref(true);
 const rounds = ref<{ [key: string]: RoundType }>({});
 const roundDetails = ref<{ [key: string]: RaceDetailType }>({});
@@ -77,11 +77,11 @@ function getLapsForPilot(raceId: string, pilotId: string): LapType[] {
 }
 
 function refreshData() {
-  fetchRounds(props.event.ID).then(() => {
-    fetchPilotRaces(props.event.ID, props.pilot.ID).then(() => {
+  fetchRounds(props.eventId).then(() => {
+    fetchPilotRaces(props.eventId, props.pilot.ID).then(() => {
       loadingDetails.value = false;
       const raceIds = Object.values(raceSummaries.value).map((summary: any) => summary.Race);
-      Promise.all(raceIds.map(raceId => fetchRawRaceDetail(props.event.ID, raceId)));
+      Promise.all(raceIds.map(raceId => fetchRawRaceDetail(props.eventId, raceId)));
     });
   });
 }
@@ -115,9 +115,8 @@ onMounted(() => {
         <StackLayout col="1" class="bg-transparent">
           <Label :text="props.pilot.Name" class="text-black font-bold text-2xl" />
           <Label v-if="props.pilot.FirstName || props.pilot.LastName"
-            :text="props.pilot.FirstName + ' ' + props.pilot.LastName" class="text-black font-bold text-2xl" />
+            :text="props.pilot.FirstName + ' ' + props.pilot.LastName" class="text-gray-600 font-semibold text-lg" />
           <Label v-if="props.pilot.CatchPhrase" :text="props.pilot.CatchPhrase" class="text-gray-500" />
-          <label :text="props.event.Name" class="text-gray-400 text-md" />
         </StackLayout>
       </GridLayout>
       <!-- Scrollable content -->

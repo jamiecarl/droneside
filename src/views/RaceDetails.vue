@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { defineProps, computed, ref, onMounted, $navigateTo } from 'nativescript-vue';
-import type { PilotType, RawRaceDataType, RaceDetailType, LapType, RoundType, ClubType } from 'types/events.vue';
+import type { PilotType, RawRaceDataType, RaceDetailType, LapType, RoundType } from 'types/events.vue';
 import { formatRaceTime } from "../utils/formatRaceTime";
 import { Application, GridLayout, StackLayout } from '@nativescript/core';
 import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
@@ -145,34 +145,10 @@ function formatDateTime(dateTimeString: string): string {
 function goToPilotDetails(pilotId: string) {
     const pilot = props.pilots.find(p => p.ID === pilotId);
     if (pilot) {
-        // Create minimal event object from available round data
-        const event = {
-            ID: props.round.Event,
-            Name: `Round ${props.round.RoundNumber}`,
-            Start: props.race.Start || '',
-            End: props.race.End || '',
-            PilotCount: props.pilots.length,
-            Club: {
-                ID: '',
-                Name: '',
-                Visible: true,
-                LogoUrl: '',
-                BannerUrl: '',
-                PrimaryColor: '',
-                TextColor: '',
-                Address: '',
-                Latitude: 0,
-                Longitude: 0,
-                Timezone: '',
-                Creation: ''
-            } as ClubType,
-            BannerUrl: ''
-        };
-        
         $navigateTo(PilotDetails, { 
             props: { 
                 pilot, 
-                event, 
+                eventId: props.round.Event,
                 pilots: props.pilots 
             } 
         });
