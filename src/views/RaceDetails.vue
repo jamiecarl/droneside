@@ -220,17 +220,18 @@ onMounted(() => {
                         <!-- Lap Details Table: now only visible if rawRace exists -->
                         <GridLayout v-if="!loadingRaces && getLapsForPilot(result.Pilot).length > 0"
                             :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`" columns="*, *"
-                            class="bg-transparent">
+                            class="bg-gray-900 rounded-md p-3 mt-3">
                             <!-- Header Row -->
-                            <Label row="0" col="0" text="Lap" class="text-white font-bold"
-                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
-                            <Label row="0" col="1" text="Time" class="text-white font-bold"
-                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+                            <Label row="0" col="0" text="Lap" class="text-white font-bold text-sm pb-2"
+                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
+                            <Label row="0" col="1" text="Time" class="text-white font-bold text-sm pb-2 text-right"
+                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
                             <!-- Data Rows -->
                             <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
-                                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" class="text-white" />
-                                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
-                                    class="text-white" />
+                                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
+                                    class="text-gray-300 py-1 text-sm" />
+                                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2) + 's'"
+                                    class="text-white py-1 text-sm text-right font-mono" />
                             </template>
                         </GridLayout>
                         

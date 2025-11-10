@@ -125,36 +125,47 @@ onMounted(() => {
         <StackLayout class="p-3 bg-black">
           <StackLayout v-for="round in rounds" :key="round.ID" class="p-4 my-2 bg-gray-800 rounded-md"
             @tap="$navigateTo(RaceDetails, { props: { race: getRaceById(round.ID), pilots: props.pilots, round: getRoundById(round.ID) } })">
-            <GridLayout columns="*, auto" class="bg-transparent">
-              <StackLayout>Fs
-                <Label :text="'Round #' + round.RoundNumber" class="text-white text-lg font-bold" />
-                <GridLayout columns="auto, *, auto" class="bg-transparent mb-5 text-xs">
-                  <GridLayout col="0" rows="auto, *, auto, auto" class="bg-transparent">
-                    <Label v-if="round.EventType !== 'TimeTrial'" row="0" text="Holeshot:" class="text-gray-400 mr-2" />
-                    <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
-                    <Label v-if="round.EventType !== 'TimeTrial'" row="2" text="Race:" class="text-gray-400 mr-2" />
-                    <Label row="3" text="Laps:" class="text-gray-400 mr-2" />
+            <GridLayout columns="*" class="bg-transparent">
+              <StackLayout col="0">
+                <!-- Round title and position/points header -->
+                <GridLayout columns="*, auto" class="bg-transparent">
+                  <Label col="0" :text="'Round #' + round.RoundNumber" class="text-white text-lg font-bold" verticalAlignment="top" />
+                  <GridLayout col="1" rows="auto, auto" class="bg-transparent">
+                    <Label v-if="round.EventType !== 'TimeTrial'" row="0" width="40" height="40"
+                      :text="raceSummaries[round.ID]?.Position || 'NA'"
+                      class="text-xl font-bold text-black text-center rounded-md"
+                      :class="'medal-' + (raceSummaries[round.ID]?.Position || '8')" />
+                    <Label v-if="parseInt(raceSummaries[round.ID]?.Points) > 0" row="1"
+                      :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
                   </GridLayout>
-                  <GridLayout col="1" rows="auto, *, auto, auto" class="bg-transparent">
-                    <Label v-if="round.EventType !== 'TimeTrial'" row="0"
-                      :text="formatRaceTime(raceSummaries[round.ID]?.HoleshotTime || 'NA')"
-                      class="text-yellow-400 mr-2" />
-                    <Label row="1" :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')"
-                      class="text-green-500 mr-2" />
-                    <Label v-if="round.EventType !== 'TimeTrial'" row="2"
-                      :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || (raceSummaries[round.ID]?.Position?'DNF':'-'))" class="text-white mr-2" />
-                    <Label row="3" :text="raceSummaries[round.ID]?.LapCount" class="text-white mr-2" />
-                  </GridLayout>[]
+                </GridLayout>
+                
+                <!-- Race timing display - single row layout -->
+                <GridLayout v-if="round.EventType !== 'TimeTrial'" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
+                  <StackLayout col="0" class="bg-transparent text-center">
+                    <Label text="Holeshot" class="text-gray-400 mb-1 text-base" />
+                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
+                  </StackLayout>
+                  <StackLayout col="1" class="bg-transparent text-center">
+                    <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                  </StackLayout>
+                  <StackLayout col="2" class="bg-transparent text-center">
+                    <Label text="Race" class="text-gray-400 mb-1 text-base" />
+                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || (raceSummaries[round.ID]?.Position?'DNF':'-'))" class="text-white text-base" />
+                  </StackLayout>
+                </GridLayout>
+                <!-- TimeTrial layout - only shows Best Lap -->
+                <StackLayout v-else class="bg-transparent mt-4 mb-5 text-xs text-center">
+                  <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                  <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                </StackLayout>
+                <!-- Laps count -->
+                <GridLayout columns="*, auto" class="bg-transparent text-xs">
+                  <Label col="0" text="Laps:" class="text-gray-400 mr-2" />
+                  <Label col="1" :text="raceSummaries[round.ID]?.LapCount" class="text-white mr-2" />
                 </GridLayout>
               </StackLayout>
-              <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                <Label v-if="round.EventType !== 'TimeTrial'" row="0" width="40" height="40"
-                  :text="raceSummaries[round.ID]?.Position || 'NA'"
-                  class="text-xl font-bold text-black text-center rounded-md"
-                  :class="'medal-' + (raceSummaries[round.ID]?.Position || '8')" />
-                <Label v-if="parseInt(raceSummaries[round.ID]?.Points) > 0" row="1"
-                  :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
-              </GridLayout>
             </GridLayout>
             <!-- No laps placeholder -->
             <StackLayout v-if="raceSummaries[round.ID]?.LapCount === 0" class="p-4 text-center">
@@ -163,17 +174,20 @@ onMounted(() => {
               <Label text="This pilot hasn't completed any valid laps yet" class="text-gray-500 text-sm text-center" />
             </StackLayout>
             <GridLayout v-else-if="getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID).length > 0"
-              :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *" class="bg-transparent">
+              :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *" 
+              class="bg-gray-900 rounded-md p-3 mt-3">
               <!-- Header Row -->
-              <Label row="0" col="0" text="Lap" class="text-white font-bold"
-                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
-              <Label row="0" col="1" text="Time" class="text-white font-bold"
-                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.3);" />
+              <Label row="0" col="0" text="Lap" class="text-white font-bold text-sm pb-2"
+                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
+              <Label row="0" col="1" text="Time" class="text-white font-bold text-sm pb-2 text-right"
+                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
               <!-- Data Rows -->
               <template v-for="(lap, index) in getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID)"
                 :key="lap.ID">
-                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" class="text-white" />
-                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)" class="text-white" />
+                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
+                    class="text-gray-300 py-1 text-sm" />
+                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2) + 's'"
+                    class="text-white py-1 text-sm text-right font-mono" />
               </template>
             </GridLayout>
             <!-- No data placeholder -->
