@@ -130,10 +130,10 @@ onMounted(() => {
                 <GridLayout columns="*, auto" class="bg-transparent">
                   <StackLayout col="0" verticalAlignment="top">
                     <Label :text="'Round #' + round.RoundNumber" class="text-white text-xl font-bold" />
-                    <Label :text="raceSummaries[round.ID]?.LapCount + ' laps'" class="text-gray-400 text-sm" />
+                    <Label v-if="raceSummaries[round.ID]?.LapCount" :text="raceSummaries[round.ID]?.LapCount + ' laps'" class="text-gray-400 text-sm" />
                   </StackLayout>
                   <GridLayout col="1" rows="auto, auto" class="bg-transparent">
-                    <Label v-if="round.EventType !== 'TimeTrial'" row="0" width="40" height="40"
+                    <Label v-if="round.EventType !== 'TimeTrial' && raceSummaries[round.ID]" row="0" width="40" height="40"
                       :text="raceSummaries[round.ID]?.Position || 'NA'"
                       class="text-xl font-bold text-black text-center rounded-md"
                       :class="'medal-' + (raceSummaries[round.ID]?.Position || '8')" />
@@ -143,7 +143,7 @@ onMounted(() => {
                 </GridLayout>
                 
                 <!-- Race timing display - single row layout -->
-                <GridLayout v-if="round.EventType !== 'TimeTrial'" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
+                <GridLayout v-if="round.EventType !== 'TimeTrial' && raceSummaries[round.ID]" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
                   <StackLayout col="0" class="bg-transparent text-center">
                     <Label text="Holeshot" class="text-gray-400 mb-1 text-base" />
                     <Label :text="formatRaceTime(raceSummaries[round.ID]?.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
@@ -158,7 +158,7 @@ onMounted(() => {
                   </StackLayout>
                 </GridLayout>
                 <!-- TimeTrial layout - only shows Best -->
-                <StackLayout v-else class="bg-transparent mt-4 mb-5 text-xs text-center">
+                <StackLayout v-else-if="round.EventType === 'TimeTrial' && raceSummaries[round.ID]" class="bg-transparent mt-4 mb-5 text-xs text-center">
                   <Label text="Best" class="text-gray-400 mb-1 text-base" />
                   <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
                 </StackLayout>
