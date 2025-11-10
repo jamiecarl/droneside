@@ -191,8 +191,8 @@ onMounted(() => {
                             <GridLayout col="2" rows="auto, auto" class="bg-transparent">
                                 <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
                                     :text="result.Position || 'NA'" width="40" height="40"
-                                    class="text-xl font-bold text-white text-center bg-white rounded-md"
-                                    style="background-color: rgba(255,255,255,0.2);" />
+                                    class="text-xl font-bold text-center rounded-md"
+                                    :class="'medal-' + (result.Position || '8')" />
                                 <Label v-if="parseInt(result.Points) > 0" row="1" :text="result.Points + ' points'"
                                     class="text-white text-xs" />
                             </GridLayout>
