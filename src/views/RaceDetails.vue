@@ -51,7 +51,16 @@ const sortedResultSummaries = computed(() => {
 
 function getPilotPhotoURL(pilotId: string) {
     const pilot = props.pilots.find((p) => p.ID === pilotId);
-    return pilot && pilot.PhotoURL ? pilot.PhotoURL : '~/assets/pilot.png';
+    if (!pilot || !pilot.PhotoURL) {
+        return '~/assets/pilot.png';
+    }
+    
+    // If PhotoURL is a relative path, prepend the base URL
+    if (pilot.PhotoURL.startsWith('/')) {
+        return 'https://fpvtrackside.com' + pilot.PhotoURL;
+    }
+    
+    return pilot.PhotoURL;
 }
 
 function getPilotName(pilotId: string) {

@@ -186,9 +186,9 @@ onMounted(() => {
       <!-- Banner with Logo Overlay and Club Header -->
       <StackLayout row="0">
         <GridLayout class="relative">
-          <Image v-if="club.BannerUrl" :src="club.BannerUrl" class="w-full h-48 object-cover" />
+          <Image v-if="club.BannerUrl" :src="club.BannerUrl.startsWith('/') ? 'https://fpvtrackside.com' + club.BannerUrl : club.BannerUrl" class="w-full h-48 object-cover" />
           <Image v-else src="https://fpvtrackside.com/assets/race-D7SlXGeN.jpg" class="w-full h-48 object-cover" />
-          <Image v-if="club.LogoUrl" :src="club.LogoUrl" class="h-20 w-20 object-cover rounded-lg ml-4 mt-4" 
+          <Image v-if="club.LogoUrl" :src="club.LogoUrl.startsWith('/') ? 'https://fpvtrackside.com' + club.LogoUrl : club.LogoUrl" class="h-20 w-20 object-cover rounded-lg ml-4 mt-4" 
                  verticalAlignment="top" horizontalAlignment="left" />
           <Image v-else src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" 
                  class="h-20 w-20 object-cover rounded-lg ml-4 mt-4" 

@@ -14,11 +14,24 @@ function goToClubDetails() {
     $navigateTo(ClubDetails, { props: { clubId: props.event.Club.ID } });
   }
 }
+
+function getClubLogoUrl() {
+  if (!props.event.Club.LogoUrl) {
+    return 'https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png';
+  }
+  
+  // If LogoUrl is a relative path, prepend the base URL
+  if (props.event.Club.LogoUrl.startsWith('/')) {
+    return 'https://fpvtrackside.com' + props.event.Club.LogoUrl;
+  }
+  
+  return props.event.Club.LogoUrl;
+}
 </script>
 
 <template>
   <GridLayout columns="auto, *" class="bg-white p-4">
-    <Image col="0" :src="props.event.Club.LogoUrl" 
+    <Image col="0" :src="getClubLogoUrl()" 
            class="h-24 w-24 object-cover rounded-lg mr-3" 
            @tap="goToClubDetails" />
     <StackLayout col="1">

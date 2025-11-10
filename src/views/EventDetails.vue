@@ -154,7 +154,7 @@ onMounted(() => {
                   <GridLayout v-for="(pilot, index) in pilots" :key="pilot.ID" class="p-4 my-2 bg-gray-800 rounded-md"
                     columns="auto, *"
                     @tap="$navigateTo(PilotDetails, { props: { pilot, event: props.event, pilots } })">
-                    <Image v-if="pilot.PhotoURL" :src="pilot.PhotoURL" col="0"
+                    <Image v-if="pilot.PhotoURL" :src="pilot.PhotoURL.startsWith('/') ? 'https://fpvtrackside.com' + pilot.PhotoURL : pilot.PhotoURL" col="0"
                       class="h-16 w-16 object-cover rounded-lg mr-3" />
                     <Image v-else src="~/assets/pilot.png" col="0" class="h-16 w-16 object-cover rounded-lg mr-3" />
                     <StackLayout col="1" class="bg-transparent">

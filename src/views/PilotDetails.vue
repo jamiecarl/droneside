@@ -110,7 +110,7 @@ onMounted(() => {
     <GridLayout rows="auto, *">
       <!-- Fixed header section -->
       <GridLayout row="0" columns="auto, *" class="p-3 bg-white">
-        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL" class="h-16 w-16 object-cover rounded-lg mr-3" />
+        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL.startsWith('/') ? 'https://fpvtrackside.com' + pilot.PhotoURL : pilot.PhotoURL" class="h-16 w-16 object-cover rounded-lg mr-3" />
         <Image col="0" v-else src="~/assets/pilot.png" class="h-16 w-16 object-cover rounded-lg mr-3" />
         <StackLayout col="1" class="bg-transparent">
           <Label :text="props.pilot.Name" class="text-black font-bold text-2xl" />
