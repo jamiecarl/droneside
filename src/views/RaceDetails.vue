@@ -197,23 +197,26 @@ onMounted(() => {
                                     class="text-white text-xs" />
                             </GridLayout>
                         </GridLayout>
-                        <GridLayout columns="auto, auto" class="bg-transparent mb-5 text-xs">
-                            <GridLayout col="0" rows="auto, *, auto" class="bg-transparent">
-                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0" text="Holeshot:"
-                                    class="text-gray-400 mr-2" />
-                                <Label row="1" text="Best Lap:" class="text-gray-400 mr-2" />
-                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="2" text="Race:"
-                                    class="text-gray-400 mr-2" />
-                            </GridLayout>
-                            <GridLayout col="1" rows="auto, *, auto" class="bg-transparent">
-                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
-                                    :text="formatRaceTime(result.HoleshotTime || 'NA')" class="text-yellow-400 mr-2" />
-                                <Label row="1" :text="formatRaceTime(result.PbLapTime || 'NA')"
-                                    class="text-green-500 mr-2" />
-                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="2"
-                                    :text="formatRaceTime(getRaceTime(result))" class="text-white mr-2" />
-                            </GridLayout>
+                        <!-- Race timing display - single row layout -->
+                        <GridLayout v-if="props.round.EventType !== 'TimeTrial'" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
+                            <StackLayout col="0" class="bg-transparent text-center">
+                                <Label text="Holeshot" class="text-gray-400 mb-1 text-base" />
+                                <Label :text="formatRaceTime(result.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
+                            </StackLayout>
+                            <StackLayout col="1" class="bg-transparent text-center">
+                                <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                                <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                            </StackLayout>
+                            <StackLayout col="2" class="bg-transparent text-center">
+                                <Label text="Race" class="text-gray-400 mb-1 text-base" />
+                                <Label :text="formatRaceTime(getRaceTime(result))" class="text-white text-base" />
+                            </StackLayout>
                         </GridLayout>
+                        <!-- TimeTrial layout - only shows Best Lap -->
+                        <StackLayout v-else class="bg-transparent mt-4 mb-5 text-xs text-center">
+                            <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
+                            <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                        </StackLayout>
                         <!-- Lap Details Table: now only visible if rawRace exists -->
                         <GridLayout v-if="!loadingRaces && getLapsForPilot(result.Pilot).length > 0"
                             :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`" columns="*, *"
