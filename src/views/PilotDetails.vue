@@ -110,8 +110,8 @@ onMounted(() => {
     <GridLayout rows="auto, *">
       <!-- Fixed header section -->
       <GridLayout row="0" columns="auto, *" class="p-3 bg-white">
-        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL" class="h-32 w-32 object-cover rounded-lg mr-3" />
-        <Image col="0" v-else src="~/assets/pilot.png" class="h-32 w-32 object-cover rounded-lg mr-3" />
+        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL" class="h-16 w-16 object-cover rounded-lg mr-3" />
+        <Image col="0" v-else src="~/assets/pilot.png" class="h-16 w-16 object-cover rounded-lg mr-3" />
         <StackLayout col="1" class="bg-transparent">
           <Label :text="props.pilot.Name" class="text-black font-bold text-2xl" />
           <Label v-if="props.pilot.FirstName || props.pilot.LastName"
@@ -194,7 +194,12 @@ onMounted(() => {
               <Label text="No data available" class="text-gray-400 text-base text-center mb-1" />
               <Label text="Race data is not available for this round" class="text-gray-500 text-sm text-center" />
             </StackLayout>
-            <Label v-else class="text-white text-center">Loading lap times...</Label>
+            <!-- Loading placeholder -->
+            <StackLayout v-else class="p-4 text-center">
+              <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf110;" />
+              <Label text="Loading lap times..." class="text-gray-400 text-base text-center mb-1" />
+              <Label text="Please wait while we fetch the data" class="text-gray-500 text-sm text-center" />
+            </StackLayout>
           </StackLayout>
         </StackLayout>
       </ScrollView>

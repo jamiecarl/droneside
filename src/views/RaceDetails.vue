@@ -244,7 +244,12 @@ onMounted(() => {
                             <Label text="This pilot hasn't completed any valid laps" class="text-gray-500 text-sm text-center" />
                         </StackLayout>
                         
-                        <Label v-else-if="loadingRaces" text="Loading race data..." class="text-white text-center" />
+                        <!-- Loading placeholder -->
+                        <StackLayout v-else-if="loadingRaces" class="p-4 text-center">
+                            <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf110;" />
+                            <Label text="Loading race data..." class="text-gray-400 text-base text-center mb-1" />
+                            <Label text="Please wait while we fetch the lap times" class="text-gray-500 text-sm text-center" />
+                        </StackLayout>
                     </StackLayout>
                 </StackLayout>
             </ScrollView>
