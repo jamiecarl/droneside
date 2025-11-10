@@ -129,7 +129,10 @@ onMounted(() => {
               <StackLayout col="0">
                 <!-- Round title and position/points header -->
                 <GridLayout columns="*, auto" class="bg-transparent">
-                  <Label col="0" :text="'Round #' + round.RoundNumber" class="text-white text-lg font-bold" verticalAlignment="top" />
+                  <StackLayout col="0" verticalAlignment="top">
+                    <Label :text="'Round #' + round.RoundNumber" class="text-white text-xl font-bold" />
+                    <Label :text="raceSummaries[round.ID]?.LapCount + ' laps'" class="text-gray-400 text-sm" />
+                  </StackLayout>
                   <GridLayout col="1" rows="auto, auto" class="bg-transparent">
                     <Label v-if="round.EventType !== 'TimeTrial'" row="0" width="40" height="40"
                       :text="raceSummaries[round.ID]?.Position || 'NA'"
@@ -160,11 +163,6 @@ onMounted(() => {
                   <Label text="Best Lap" class="text-gray-400 mb-1 text-base" />
                   <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
                 </StackLayout>
-                <!-- Laps count -->
-                <GridLayout columns="*, auto" class="bg-transparent text-xs">
-                  <Label col="0" text="Laps:" class="text-gray-400 mr-2" />
-                  <Label col="1" :text="raceSummaries[round.ID]?.LapCount" class="text-white mr-2" />
-                </GridLayout>
               </StackLayout>
             </GridLayout>
             <!-- No laps placeholder -->
@@ -186,7 +184,7 @@ onMounted(() => {
                 :key="lap.ID">
                 <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
                     class="text-gray-300 py-1 text-sm" />
-                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2) + 's'"
+                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
                     class="text-white py-1 text-sm text-right font-mono" />
               </template>
             </GridLayout>

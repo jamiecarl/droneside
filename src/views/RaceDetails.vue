@@ -182,11 +182,13 @@ onMounted(() => {
                         <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
                             <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
                                 class="h-16 w-16 object-cover rounded-lg mr-2" />
-                            <GridLayout col="1" rows="auto, auto" class="bg-transparent">
+                            <GridLayout col="1" rows="auto, auto, auto" class="bg-transparent">
                                 <Label row="0" :text="getPilotName(result.Pilot)"
                                     class="text-white font-bold text-lg align-top" />
-                                <Label row="1" :text="getPilotCatchPhrase(result.Pilot)"
-                                    class="text-gray-500 font-bold text-xs  align-top" />
+                                <Label row="1" :text="getLapsForPilot(result.Pilot).length + ' laps'"
+                                    class="text-gray-400 text-sm align-top" />
+                                <Label row="2" :text="getPilotCatchPhrase(result.Pilot)"
+                                    class="text-gray-500 font-bold text-xs align-top" />
                             </GridLayout>
                             <GridLayout col="2" rows="auto, auto" class="bg-transparent">
                                 <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
@@ -230,7 +232,7 @@ onMounted(() => {
                             <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
                                 <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
                                     class="text-gray-300 py-1 text-sm" />
-                                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2) + 's'"
+                                <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
                                     class="text-white py-1 text-sm text-right font-mono" />
                             </template>
                         </GridLayout>
