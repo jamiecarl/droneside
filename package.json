@@ -2,7 +2,7 @@
   "name": "droneside",
   "description": "The FPVTackside Companion App",
   "main": "src/app.ts",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "nativeScript": {
     "id": "com.jamiecarl.droneside",
