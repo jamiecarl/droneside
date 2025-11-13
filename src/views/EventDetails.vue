@@ -186,7 +186,7 @@ onMounted(() => {
           </TabViewItem>
           <TabViewItem title="Pilots">
             <GridLayout>
-              <ScrollView row="1" v-if="!loadingPilots">
+              <ScrollView row="1" v-if="!loadingPilots && pilots.length > 0">
                 <StackLayout class="p-3 bg-black">
                   <GridLayout v-for="(pilot, index) in pilots" :key="pilot.ID" class="p-4 my-2 bg-gray-800 rounded-md"
                     columns="auto, *"
@@ -203,12 +203,17 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
+              <StackLayout v-else-if="!loadingPilots && pilots.length === 0" class="p-8 text-center bg-black">
+                <Label class="text-6xl mb-4 text-gray-500 fa" text="&#xf007;" />
+                <Label text="No pilots registered" class="text-xl text-gray-500 mb-2" />
+                <Label text="Pilots will appear here once they register for this event" class="text-sm text-gray-400" textWrap="true" />
+              </StackLayout>
               <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
           <TabViewItem title="Top Laps">
             <GridLayout>
-              <ScrollView row="1" v-if="!loadingRaceSummaries">
+              <ScrollView row="1" v-if="!loadingRaceSummaries && sortedTopLaps.length > 0">
                 <StackLayout class="p-3 bg-black">
                   <GridLayout v-for="(summary, index) in sortedTopLaps" :key="summary.pilot_id"
                     class="p-4 my-2 bg-gray-800 rounded-md" columns="auto, auto, *, auto"
@@ -224,6 +229,11 @@ onMounted(() => {
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
+              <StackLayout v-else-if="!loadingRaceSummaries && sortedTopLaps.length === 0" class="p-8 text-center bg-black">
+                <Label class="text-6xl mb-4 text-gray-500 fa" text="&#xf017;" />
+                <Label text="No lap times available" class="text-xl text-gray-500 mb-2" />
+                <Label text="Lap times will appear here once races are completed" class="text-sm text-gray-400" textWrap="true" />
+              </StackLayout>
               <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
