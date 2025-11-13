@@ -45,6 +45,7 @@ async function loadHomeClubEvents() {
       ...event,
       Club: {
         ...event.Club,
+        Name: event.Club.Name || selectedClub.value?.Name || 'Unknown Club',
         LogoUrl: selectedClub.value?.LogoUrl || 'https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png'
       }
     })).sort((a: EventType, b: EventType) => new Date(b.Start).getTime() - new Date(a.Start).getTime());
