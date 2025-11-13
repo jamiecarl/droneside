@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { FlexboxLayout, GridLayout, StackLayout } from '@nativescript/core';
 import { defineProps, $navigateTo } from 'nativescript-vue';
 import { EventType } from 'types/events.vue';
 import ClubDetails from '~/views/ClubDetails.vue';
@@ -34,11 +35,17 @@ function getClubLogoUrl() {
     <Image col="0" :src="getClubLogoUrl()" 
            class="h-24 w-24 object-cover rounded-lg mr-3" 
            @tap="goToClubDetails" />
-    <StackLayout col="1">
-      <Label :text="props.event.Name" class="text-md font-bold text-black mb-2" />
-      <Label :text="props.event.Club.Name" class="text-sm text-gray-400" />
-      <Label :text="formatDate(props.event.Start)" class="text-sm text-gray-400" />
-      <Label :text="'Pilots: ' + props.event.PilotCount" class="text-sm text-gray-400" />
-    </StackLayout>
+    <FlexboxLayout col="1" class="bg-transparent" flexDirection="column" justifyContent="space-between">
+      <StackLayout flexGrow="1">
+        <Label :text="props.event.Name" class="text-md font-bold text-black" textWrap="true"/>
+      </StackLayout>
+      <StackLayout>
+        <Label :text="props.event.Club.Name" class="text-sm text-gray-400" />
+        <GridLayout columns="*, auto" class="bg-transparent">
+          <Label col="0" :text="formatDate(props.event.Start)" class="text-sm text-gray-400" />
+          <Label col="1" :text="'Pilots: ' + props.event.PilotCount" class="text-sm text-gray-400 text-right" />
+        </GridLayout>
+      </StackLayout>
+    </FlexboxLayout>
   </GridLayout>
 </template>
