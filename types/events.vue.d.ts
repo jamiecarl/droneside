@@ -12,17 +12,17 @@ export interface ChannelType {
 
 export interface ClubType {
     ID: string;
-    Creation:string;
+    Creation: string;
     Name: string;
-    Visible: true,
+    Visible: true;
     LogoUrl: string;
     BannerUrl: string
-    PrimaryColor: string,
-    TextColor: string,
-    Address: string,
-    Latitude: number,
-    Longitude: number,
-    Timezone:string
+    PrimaryColor: string;
+    TextColor: string;
+    Address: string;
+    Latitude: number;
+    Longitude: number;
+    Timezone: string
 }
 
 export interface EventType {
@@ -148,4 +148,17 @@ export interface PointsType {
     round_order: string;
     bracket: string;
     points: string;
+}
+
+export interface RaceSummaryType {
+    pilot_id: string;
+    holeshot_time: number;
+    pb_lap_count: number;
+    pb_lap_time: number;
+    target_lap_count: number;
+    target_lap_time: number;
+    race_time: number;
+    round_number: number;
+    round_order: number;
+    event_type: string;
 }

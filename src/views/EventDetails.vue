@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, $navigateTo } from 'nativescript-vue';
-import { RoundType, EventType, PilotType, ChannelType, PointsType } from 'types/events.vue';
+import { RoundType, EventType, PilotType, ChannelType, RaceSummaryType } from 'types/events.vue';
 import RoundDetails from './RoundDetails.vue';
 import PilotDetails from './PilotDetails.vue';
 import { Application, GridLayout, ScrollView, StackLayout, TabViewItem } from '@nativescript/core';
@@ -8,12 +8,12 @@ import ClubEventHeader from '../components/ClubEventHeader.vue';
 
 const rounds = ref<RoundType[]>([]);
 const pilots = ref<PilotType[]>([]);
-const points = ref<PointsType[]>([]);
+const raceSummaries = ref<RaceSummaryType[]>([]);
 const props = defineProps<{ event: EventType; channels: ChannelType[] }>();
 
 const loadingRounds = ref(true);
 const loadingPilots = ref(true);
-const loadingPoints = ref(true);
+const loadingRaceSummaries = ref(true);
 
 async function fetchEventDetails(eventId: string) {
   try {
@@ -62,35 +62,40 @@ async function fetchPilots(eventId: string) {
   }
 }
 
-async function fetchPoints(eventId: string) {
+async function fetchRaceSummaries(eventId: string) {
   try {
     if (pilots.value.length === 0) {
       fetchPilots(eventId);
     }
-    console.log('Fetching points for event:', eventId);
-    const response = await fetch(`https://fpvtrackside.com/api/public/points/eventId/${eventId}`);
+    console.log('Fetching race summaries for event:', eventId);
+    const response = await fetch(`https://fpvtrackside.com/api/public/raceSummaries/eventId/${eventId}`);
     const data = await response.json();
-    points.value = data;
+    raceSummaries.value = data;
   } catch (error) {
-    console.error('Error fetching points:', error);
+    console.error('Error fetching race summaries:', error);
   } finally {
-    loadingPoints.value = false;
+    loadingRaceSummaries.value = false;
   }
 }
 
-const sortedPoints = computed(() => {
-  const pilotPointsMap: { [key: string]: number } = {};
+const sortedTopLaps = computed(() => {
+  // Get the best lap time for each pilot
+  const pilotBestLaps: { [key: string]: RaceSummaryType } = {};
 
-  points.value.forEach(point => {
-    if (!pilotPointsMap[point.pilot_id]) {
-      pilotPointsMap[point.pilot_id] = 0;
+  raceSummaries.value.forEach(summary => {
+    const pilotId = summary.pilot_id;
+    
+    // Check if this pilot doesn't have a best lap yet, or if this lap is better
+    if (!pilotBestLaps[pilotId] || 
+        (summary.pb_lap_time && summary.pb_lap_time > 0 && 
+         (!pilotBestLaps[pilotId].pb_lap_time || summary.pb_lap_time < pilotBestLaps[pilotId].pb_lap_time))) {
+      pilotBestLaps[pilotId] = summary;
     }
-    pilotPointsMap[point.pilot_id] += parseInt(point.points);
   });
 
-  return Object.entries(pilotPointsMap)
-    .map(([PilotID, totalPoints]) => ({ PilotID, Points: totalPoints }))
-    .sort((a, b) => b.Points - a.Points);
+  return Object.values(pilotBestLaps)
+    .filter(summary => summary.pb_lap_time && summary.pb_lap_time > 0) // Only include pilots with valid lap times
+    .sort((a, b) => a.pb_lap_time - b.pb_lap_time); // Sort by fastest lap time
 });
 
 function getPilotName(pilotId: string): string {
@@ -112,7 +117,7 @@ function getPilotPhotoURL(pilotId: string): string {
   return pilot.PhotoURL;
 }
 
-function navigateToPilotFromLeaderboard(pilotId: string) {
+function navigateToPilotFromTopLaps(pilotId: string) {
   const pilot = pilots.value.find(p => p.ID === pilotId);
   if (pilot) {
     $navigateTo(PilotDetails, {
@@ -125,6 +130,11 @@ function navigateToPilotFromLeaderboard(pilotId: string) {
   }
 }
 
+function formatLapTime(seconds: number): string {
+  if (!seconds || seconds === 0) return 'N/A';
+  return seconds.toFixed(2);
+}
+
 function formatDate(dateString: string): string {
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString(undefined, options);
@@ -135,8 +145,8 @@ function onTabChange(index: any) {
     fetchEventDetails(props.event.ID);
   } else if (index.value === 1 && loadingPilots.value) {
     fetchPilots(props.event.ID);
-  } else if (index.value === 2 && loadingPoints.value) {
-    fetchPoints(props.event.ID);
+  } else if (index.value === 2 && loadingRaceSummaries.value) {
+    fetchRaceSummaries(props.event.ID);
   }
 }
 
@@ -196,17 +206,21 @@ onMounted(() => {
               <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
             </GridLayout>
           </TabViewItem>
-          <TabViewItem title="Leaderboard">
+          <TabViewItem title="Top Laps">
             <GridLayout>
-              <ScrollView row="1" v-if="!loadingPoints">
+              <ScrollView row="1" v-if="!loadingRaceSummaries">
                 <StackLayout class="p-3 bg-black">
-                  <GridLayout v-for="(point, index) in sortedPoints" :key="point.PilotID"
-                    class="p-4 my-2 bg-gray-800 rounded-md" columns="auto, *, auto"
-                    @tap="navigateToPilotFromLeaderboard(point.PilotID)">
-                    <Image col="0" :src="getPilotPhotoURL(point.PilotID)" 
+                  <GridLayout v-for="(summary, index) in sortedTopLaps" :key="summary.pilot_id"
+                    class="p-4 my-2 bg-gray-800 rounded-md" columns="auto, auto, *, auto"
+                    @tap="navigateToPilotFromTopLaps(summary.pilot_id)">
+                    <Label col="0" :text="(index + 1).toString()" class="text-2xl text-yellow-500 font-bold w-8 text-center mr-2" />
+                    <Image col="1" :src="getPilotPhotoURL(summary.pilot_id)" 
                            class="h-12 w-12 object-cover rounded-lg mr-3" />
-                    <Label col="1" :text="getPilotName(point.PilotID)" class="text-lg text-white" />
-                    <Label col="2" :text="point.Points" class="text-lg text-red-500 text-right" />
+                    <Label col="2" :text="getPilotName(summary.pilot_id)" class="text-lg text-white" />
+                    <StackLayout col="3" class="text-right">
+                      <Label :text="formatLapTime(summary.pb_lap_time)" class="text-xl text-green-500 text-right font-bold" />
+                      <Label :text="'Round ' + summary.round_number" class="text-sm text-gray-400 text-right" />
+                    </StackLayout>
                   </GridLayout>
                 </StackLayout>
               </ScrollView>
