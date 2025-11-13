@@ -40,7 +40,7 @@ function getClubLogoUrl() {
         <Label :text="props.event.Name" class="text-md font-bold text-black" textWrap="true"/>
       </StackLayout>
       <StackLayout>
-        <Label :text="props.event.Club.Name" class="text-sm text-gray-400" />
+        <Label :text="props.event.Club.Name" class="text-sm text-gray-600 font-bold" />
         <GridLayout columns="*, auto" class="bg-transparent">
           <Label col="0" :text="formatDate(props.event.Start)" class="text-sm text-gray-400" />
           <Label col="1" :text="'Pilots: ' + props.event.PilotCount" class="text-sm text-gray-400 text-right" />
