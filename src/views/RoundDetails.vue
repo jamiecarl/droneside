@@ -56,59 +56,73 @@ function getRaceTime(result: any) {
     return result.RaceTime || placeholder;
 }
 
+function getRaceStatus(race: RaceDetailType): 'COMPLETE' | 'RUNNING' | 'NOT STARTED' {
+    if (race.End && race.Start && race.End > race.Start) {
+        return 'COMPLETE';
+    }
+    if (race.Start && race.Start !== '' && race.Start > '0001-01-01 00:00:00') {
+        return 'RUNNING';
+    }
+    return 'NOT STARTED';
+}
+
 onMounted(() => {
     fetchRoundDetails(props.round.Event, props.round.ID);
 });
 </script>
 
 <template>
-    <Page>
-        <ActionBar>
+    <Page class="bg-ds-base">
+        <ActionBar class="bg-ds-base">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
-            <Label :text="'Round ' + round.RoundNumber + ' Details'" class="font-bold text-lg" />
+            <Label :text="'Round ' + round.RoundNumber" class="font-bold text-lg text-ds-ink" />
             <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh"
                 @tap="fetchRoundDetails(props.round.Event, props.round.ID)" />
         </ActionBar>
         <!-- Wrap content in a GridLayout with fixed header -->
-        <GridLayout rows="auto, *">
+        <GridLayout rows="auto, *" class="bg-ds-base">
             <!-- Fixed header section -->
-            <StackLayout row="0" class="p-3 bg-white">
-                <Label :text="props.event.Name" class="text-black font-bold text-lg" />
-                <Label :text="'Round #' + round.RoundNumber" class="text-black font-bold text-lg" />
-                <Label :text="round.EventType" class="text-black text-base" />
+            <StackLayout row="0" class="px-5 pt-1 pb-4">
+                <Label :text="props.event.Name" class="text-ds-muted2 text-sm mb-1" textWrap="true" />
+                <GridLayout columns="*, auto">
+                    <Label col="0" :text="'Round ' + round.RoundNumber" class="text-2xl font-bold text-ds-ink" />
+                    <Label col="1" :text="round.EventType"
+                        class="font-mono-ds text-[10px] tracking-wide uppercase text-ds-cyan bg-ds-cyan-surface border border-ds-cyan-border rounded-md px-2 py-1" />
+                </GridLayout>
             </StackLayout>
             <!-- Scrollable content -->
             <ScrollView row="1" v-if="!loadingDetails && raceDetails.length > 0">
-                <StackLayout class="p-3 bg-black">
+                <StackLayout class="px-4 bg-ds-base">
                     <StackLayout v-for="(race, index) in raceDetails" :key="race.ID"
-                        class="p-4 my-2 bg-gray-800 rounded-md"
+                        class="p-4 mb-2.5 bg-ds-surface border border-ds-line rounded-2xl"
                         @tap="$navigateTo(RaceDetails, { props: { race, pilots: props.pilots, round: props.round } })">
-                        <GridLayout columns="*, auto" class="mb-2 bg-transparent">
-                            <Label :text="'Race #' + race.RaceNumber" class="text-white text-lg font-bold" />
-                            <Label v-if="props.round.EventType !== 'TimeTrial'" col="1" :text="'Laps: ' + race.TargetLaps"
-                                class="text-white text-lg font-bold text-right" />
+                        <GridLayout columns="*, auto" class="mb-2.5 bg-transparent">
+                            <Label :text="'Race ' + race.RaceNumber" class="text-ds-ink text-base font-semibold" />
+                            <Label col="1" :text="getRaceStatus(race) + (props.round.EventType !== 'TimeTrial' ? ' · ' + race.TargetLaps + ' LAPS' : '')"
+                                class="font-mono-ds text-[10px] tracking-wide text-ds-muted text-right"
+                                :class="getRaceStatus(race) === 'RUNNING' ? 'text-ds-cyan' : 'text-ds-muted'" />
                         </GridLayout>
                         <GridLayout v-for="result in race.ResultSummaries" :key="result.ID"
-                            columns="24, auto, *, auto, auto" class="ml-4 mb-1 bg-transparent">
-                            <Label col="0" :text="result.Position || '-'" class="text-white text-center mr-1" />
-                            <Label col="1" :text="result?.Channel?.DisplayName" width="16" height="16"
-                                class="mr-3 channel" :style="{ backgroundColor: result?.Channel?.Color }" />
-                            <Label col="2" :text="result.PilotName" class="text-white" />
-                            <Label col="3" :text="formatRaceTime(getRaceTime(result))" class="text-white text-right" />
+                            columns="14, auto, *, auto" class="mb-1.5 bg-transparent">
+                            <Label col="0" :text="result.Position || '-'" class="font-mono-ds text-xs text-ds-muted text-center" />
+                            <Label col="1" width="3" height="16" class="mr-2.5 rounded-sm channel"
+                                :style="{ backgroundColor: result?.Channel?.Color || '#3B424B' }" />
+                            <Label col="2" :text="result.PilotName" class="text-sm text-ds-ink2" />
+                            <Label col="3" :text="formatRaceTime(getRaceTime(result))" class="font-mono-ds text-sm text-ds-ink text-right" />
                         </GridLayout>
                     </StackLayout>
                 </StackLayout>
             </ScrollView>
-            
+
             <!-- No races placeholder -->
-            <StackLayout row="1" v-else-if="!loadingDetails && raceDetails.length === 0" class="p-8 bg-black">
+            <StackLayout row="1" v-else-if="!loadingDetails && raceDetails.length === 0" class="p-8 bg-ds-base">
                 <StackLayout class="text-center">
-                    <Label class="fa text-gray-400 text-6xl mb-4 text-center" text="&#xf11e;" />
-                    <Label text="No races found" class="text-white text-xl font-semibold text-center mb-2" />
-                    <Label text="This round doesn't have any races" class="text-gray-400 text-base text-center" />
+                    <Label class="fa text-ds-faint text-5xl mb-4 text-center" text="&#xf11e;" />
+                    <Label text="No races found" class="text-ds-ink text-lg font-semibold text-center mb-2" />
+                    <Label text="This round doesn't have any races" class="text-ds-muted2 text-base text-center" />
                 </StackLayout>
             </StackLayout>
-            
+
             <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
         </GridLayout>
     </Page>

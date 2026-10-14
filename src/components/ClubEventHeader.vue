@@ -31,21 +31,19 @@ function getClubLogoUrl() {
 </script>
 
 <template>
-  <GridLayout columns="auto, *" class="bg-white p-4">
-    <Image col="0" :src="getClubLogoUrl()" 
-           class="h-24 w-24 object-cover rounded-lg mr-3" 
+  <GridLayout columns="auto, *" class="bg-ds-surface border border-ds-line rounded-2xl p-3.5">
+    <Image col="0" :src="getClubLogoUrl()"
+           class="h-10 w-10 object-cover rounded-xl mr-3"
            @tap="goToClubDetails" />
     <FlexboxLayout col="1" class="bg-transparent" flexDirection="column" justifyContent="space-between">
       <StackLayout flexGrow="1">
-        <Label :text="props.event.Name" class="text-md font-bold text-black" textWrap="true"/>
+        <Label :text="props.event.Name" class="text-base font-semibold text-ds-ink mb-0.5" textWrap="true"/>
+        <Label :text="props.event.Club.Name" class="text-xs text-ds-muted2" textWrap="true" />
       </StackLayout>
-      <StackLayout>
-        <Label :text="props.event.Club.Name" class="text-sm text-gray-600 font-bold" />
-        <GridLayout columns="*, auto" class="bg-transparent">
-          <Label col="0" :text="formatDate(props.event.Start)" class="text-sm text-gray-400" />
-          <Label col="1" :text="'Pilots: ' + props.event.PilotCount" class="text-sm text-gray-400 text-right" />
-        </GridLayout>
-      </StackLayout>
+      <GridLayout columns="*, auto" class="bg-transparent mt-2">
+        <Label col="0" :text="formatDate(props.event.Start)" class="font-mono-ds text-xs text-ds-cyan" />
+        <Label col="1" :text="'PILOTS ' + props.event.PilotCount" class="font-mono-ds text-xs text-ds-muted text-right" />
+      </GridLayout>
     </FlexboxLayout>
   </GridLayout>
 </template>

@@ -5,6 +5,7 @@ import { formatRaceTime } from "../utils/formatRaceTime";
 import { Application, GridLayout, StackLayout } from '@nativescript/core';
 import { sortResultsByPosition, sortResultByPbTime } from '../utils/sortResults';
 import PilotDetails from './PilotDetails.vue';
+import LapSparkline from '../components/LapSparkline.vue';
 
 const props = defineProps<{ race: RaceDetailType, round: RoundType, pilots: PilotType[] }>();
 
@@ -22,6 +23,22 @@ const podium = computed(() => {
     }
     return sortResultsByPosition([...props.race.ResultSummaries]).slice(0, 3);
 });
+
+// Display order for the podium blocks: 2nd, 1st, 3rd (tallest in the middle), matching the redesign.
+const orderedPodium = computed(() => {
+    if (!podium.value) return null;
+    if (podium.value.length === 3) {
+        return [podium.value[1], podium.value[0], podium.value[2]];
+    }
+    return podium.value;
+});
+
+function podiumBlockHeight(result: any): string {
+    const position = parseInt(result.Position) || 3;
+    if (position === 1) return '92px';
+    if (position === 2) return '62px';
+    return '46px';
+}
 
 // Check if race has started (has a valid start time)
 const hasRaceStarted = computed(() => {
@@ -126,6 +143,13 @@ function getLapsForPilot(pilotId: string): LapType[] {
         .sort((a, b) => a.LapNumber - b.LapNumber);
 }
 
+function getAvgLapForPilot(pilotId: string): string {
+    const laps = getLapsForPilot(pilotId);
+    if (laps.length === 0) return 'NA';
+    const total = laps.reduce((sum, lap) => sum + lap.LengthSeconds, 0);
+    return (total / laps.length).toFixed(2);
+}
+
 function getRaceTime(result: any) {
     const placeholder = result.Position ? 'DNF' : '-';
     if (props.round.EventType === 'TimeTrial') {
@@ -163,118 +187,125 @@ onMounted(() => {
 </script>
 
 <template>
-    <Page>
-        <ActionBar>
+    <Page class="bg-ds-base">
+        <ActionBar class="bg-ds-base">
             <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
             <!-- Updated header label with event and round details -->
-            <Label :text="`Round: ${props.round.RoundNumber} Race: ${race.RaceNumber}`" class="font-bold text-lg" />
+            <Label :text="`Round ${props.round.RoundNumber} · Race ${race.RaceNumber}`" class="font-bold text-lg text-ds-ink" />
             <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
         </ActionBar>
         <!-- Parent container with conditional sections based on race state -->
-        <GridLayout :rows="podium && hasRaceStarted ? 'auto, auto, *' : hasRaceStarted ? 'auto, *' : '*'">
+        <GridLayout :rows="podium && hasRaceStarted ? 'auto, auto, *' : hasRaceStarted ? 'auto, *' : '*'" class="bg-ds-base">
             <!-- Fixed Podium Section - only show if race is finished -->
-            <StackLayout v-if="podium" row="0" class="p-3 bg-white">
+            <StackLayout v-if="podium" row="0" class="px-5 pt-2 pb-3">
                 <!-- Podium Section -->
-                <StackLayout>
-                    <Label text="Podium" class="text-black text-center text-xl font-bold mb-2" />
-                    <GridLayout columns="*,auto,*" class="bg-transparent" row="0">
-                        <StackLayout v-for="(result, idx) in podium" :key="result.ID" :col="idx">
-                            <Label :text="result.Position || '?'" class="text-white text-center mt-2 medal"
-                                :class="'medal-' + (result.Position || 0)" />
-                            <Label :text="getPilotName(result.Pilot)" class="text-black text-center mt-2" />
-                            <Label :text="formatRaceTime(getRaceTime(result))" class="text-black text-center mt-1" />
+                <GridLayout columns="*,*,*" class="bg-transparent">
+                    <StackLayout v-for="(result, idx) in orderedPodium" :key="result.ID" :col="idx" verticalAlignment="bottom">
+                        <Image :src="getPilotPhotoURL(result.Pilot)"
+                            :class="result.Position === '1' ? 'h-10 w-10' : 'h-8 w-8'"
+                            class="object-cover rounded-xl self-center mb-2" />
+                        <StackLayout :class="result.Position === '1'
+                            ? 'bg-ds-cyan-surface border border-ds-cyan-border'
+                            : 'bg-ds-surface2 border border-ds-line'"
+                            class="rounded-t-xl items-center py-2" :style="{ height: podiumBlockHeight(result) }">
+                            <Label :text="result.Position || '?'" class="font-mono-ds font-semibold"
+                                :class="result.Position === '1' ? 'text-xl text-ds-cyan' : 'text-base text-ds-muted'" />
+                            <Label :text="getPilotName(result.Pilot)" class="text-xs mt-0.5"
+                                :class="result.Position === '1' ? 'text-ds-ink font-semibold' : 'text-ds-muted2'" textWrap="false" />
+                            <Label :text="formatRaceTime(getRaceTime(result))" class="font-mono-ds text-[11px] mt-0.5"
+                                :class="result.Position === '1' ? 'text-ds-cyan' : 'text-ds-muted'" />
                         </StackLayout>
-                    </GridLayout>
-                </StackLayout>
+                    </StackLayout>
+                </GridLayout>
             </StackLayout>
             <!-- Race Timing Section - only show if race has started -->
-            <StackLayout v-if="hasRaceStarted" :row="podium ? 1 : 0" class="p-2 bg-gray-100">
+            <StackLayout v-if="hasRaceStarted" :row="podium ? 1 : 0" class="px-5 py-2.5 border-t border-b border-ds-line-soft">
                 <GridLayout :columns="raceDuration ? 'auto, *, auto, 2*, auto' : 'auto, *, auto, *'" class="bg-transparent">
-                    <Label col="0" text="Start:" class="text-gray-600 text-sm font-bold" />
-                    <Label col="1" :text="formatDateTime(props.race.Start)" class="text-black text-sm" />
-                    <Label col="2" text="End:" class="text-gray-600 text-sm font-bold" />
-                    <Label col="3" :text="formatDateTime(props.race.End)" class="text-black text-sm" />
-                    <Label v-if="raceDuration" col="4" :text="'Duration: ' + raceDuration" class="text-gray-600 text-sm font-bold text-right" />
+                    <Label col="0" text="START" class="font-mono-ds text-[10px] tracking-wide text-ds-muted2 mr-1.5" />
+                    <Label col="1" :text="formatDateTime(props.race.Start)" class="font-mono-ds text-xs text-ds-muted" />
+                    <Label col="2" text="END" class="font-mono-ds text-[10px] tracking-wide text-ds-muted2 mr-1.5" />
+                    <Label col="3" :text="formatDateTime(props.race.End)" class="font-mono-ds text-xs text-ds-muted" />
+                    <Label v-if="raceDuration" col="4" :text="raceDuration" class="font-mono-ds text-xs text-ds-muted text-right" />
                 </GridLayout>
             </StackLayout>
             <!-- Scrollable All Pilots Section -->
             <ScrollView :row="podium && hasRaceStarted ? 2 : hasRaceStarted ? 1 : 0">
-                <StackLayout class="p-3 bg-transparent">
+                <StackLayout class="p-4 bg-transparent">
                     <!-- Detailed Pilot Overview Stats Section -->
                     <StackLayout v-for="result in sortedResultSummaries" :key="result.ID"
-                        class="p-4 my-2 bg-gray-800 rounded-md">
-                        <GridLayout columns="auto, *, auto" class="bg-transparent mb-1">
+                        class="p-3.5 mb-2.5 bg-ds-surface border border-ds-line rounded-2xl">
+                        <GridLayout columns="auto, *, auto" class="bg-transparent mb-3">
                             <Image col="0" :src="getPilotPhotoURL(result.Pilot)"
-                                class="h-16 w-16 object-cover rounded-lg mr-2" 
+                                class="h-11 w-11 object-cover rounded-xl mr-3"
                                 @tap="goToPilotDetails(result.Pilot)" />
-                            <GridLayout col="1" rows="auto, auto, auto" class="bg-transparent"
+                            <GridLayout col="1" rows="auto, auto" class="bg-transparent"
                                 @tap="goToPilotDetails(result.Pilot)">
                                 <Label row="0" :text="getPilotName(result.Pilot)"
-                                    class="text-white font-bold text-lg align-top" />
+                                    class="text-ds-ink font-semibold text-base align-top" />
                                 <Label row="1" :text="getLapsForPilot(result.Pilot).length + ' laps'"
-                                    class="text-gray-400 text-sm align-top" />
-                                <Label row="2" :text="getPilotCatchPhrase(result.Pilot)"
-                                    class="text-gray-500 font-bold text-xs align-top" />
+                                    class="font-mono-ds text-ds-muted2 text-[10px] align-top tracking-wide" />
                             </GridLayout>
-                            <GridLayout col="2" rows="auto, auto" class="bg-transparent">
-                                <Label v-if="props.round.EventType !== 'TimeTrial'" row="0"
-                                    :text="result.Position || 'NA'" width="40" height="40"
-                                    class="text-xl font-bold text-center rounded-md"
-                                    :class="'medal-' + (result.Position || '8')" />
-                                <Label v-if="parseInt(result.Points) > 0" row="1" :text="result.Points + ' points'"
-                                    class="text-white text-xs" />
-                            </GridLayout>
+                            <StackLayout col="2">
+                                <Label v-if="props.round.EventType !== 'TimeTrial'"
+                                    :text="result.Position || 'NA'"
+                                    class="font-mono-ds text-xl font-semibold text-right"
+                                    :class="result.Position === '1' ? 'text-ds-cyan' : 'text-ds-ink'" />
+                                <Label v-if="parseInt(result.Points) > 0" :text="result.Points + ' PTS'"
+                                    class="font-mono-ds text-ds-muted2 text-[10px] text-right" />
+                            </StackLayout>
                         </GridLayout>
+                        <LapSparkline v-if="!loadingRaces && getLapsForPilot(result.Pilot).length > 1"
+                            :laps="getLapsForPilot(result.Pilot).map(l => l.LengthSeconds)" :height="46" class="mb-2.5" />
                         <!-- Race timing display - single row layout -->
-                        <GridLayout v-if="props.round.EventType !== 'TimeTrial'" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
-                            <StackLayout col="0" class="bg-transparent text-center">
-                                <Label text="Holeshot" class="text-gray-400 mb-1 text-base" />
-                                <Label :text="formatRaceTime(result.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
+                        <GridLayout v-if="props.round.EventType !== 'TimeTrial'" columns="*, *, *" class="bg-transparent">
+                            <StackLayout col="0" class="stat-tile mr-1.5">
+                                <Label text="HOLESHOT" class="stat-tile-label" />
+                                <Label :text="formatRaceTime(result.HoleshotTime || 'NA')" class="stat-tile-value text-ds-holeshot" />
                             </StackLayout>
-                            <StackLayout col="1" class="bg-transparent text-center">
-                                <Label text="Best" class="text-gray-400 mb-1 text-base" />
-                                <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                            <StackLayout col="1" class="stat-tile mx-1.5">
+                                <Label text="BEST LAP" class="stat-tile-label" />
+                                <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="stat-tile-value text-ds-cyan" />
                             </StackLayout>
-                            <StackLayout col="2" class="bg-transparent text-center">
-                                <Label text="Race" class="text-gray-400 mb-1 text-base" />
-                                <Label :text="formatRaceTime(getRaceTime(result))" class="text-white text-base" />
+                            <StackLayout col="2" class="stat-tile ml-1.5">
+                                <Label text="AVG" class="stat-tile-label" />
+                                <Label :text="getAvgLapForPilot(result.Pilot)" class="stat-tile-value" />
                             </StackLayout>
                         </GridLayout>
                         <!-- TimeTrial layout - only shows Best -->
-                        <StackLayout v-else class="bg-transparent mt-4 mb-5 text-xs text-center">
-                            <Label text="Best" class="text-gray-400 mb-1 text-base" />
-                            <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="text-green-500 text-base" />
+                        <StackLayout v-else class="stat-tile">
+                            <Label text="BEST LAP" class="stat-tile-label" />
+                            <Label :text="formatRaceTime(result.PbLapTime || 'NA')" class="stat-tile-value text-ds-cyan" />
                         </StackLayout>
                         <!-- Lap Details Table: now only visible if rawRace exists -->
                         <GridLayout v-if="!loadingRaces && getLapsForPilot(result.Pilot).length > 0"
                             :rows="`auto${', auto'.repeat(getLapsForPilot(result.Pilot).length)}`" columns="*, *"
-                            class="bg-gray-900 rounded-md p-3 mt-3">
+                            class="bg-ds-surface2 rounded-xl p-3 mt-2.5">
                             <!-- Header Row -->
-                            <Label row="0" col="0" text="Lap" class="text-white font-bold text-sm pb-2"
-                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
-                            <Label row="0" col="1" text="Time" class="text-white font-bold text-sm pb-2 text-right"
-                                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
+                            <Label row="0" col="0" text="LAP" class="font-mono-ds text-ds-muted2 text-[10px] tracking-wide pb-2"
+                                style="border-bottom-width: 1px; border-bottom-color: #1F242B;" />
+                            <Label row="0" col="1" text="TIME" class="font-mono-ds text-ds-muted2 text-[10px] tracking-wide pb-2 text-right"
+                                style="border-bottom-width: 1px; border-bottom-color: #1F242B;" />
                             <!-- Data Rows -->
                             <template v-for="(lap, index) in getLapsForPilot(result.Pilot)" :key="lap.ID">
-                                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
-                                    class="text-gray-300 py-1 text-sm" />
+                                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber"
+                                    class="font-mono-ds text-ds-muted py-1 text-xs" />
                                 <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
-                                    class="text-white py-1 text-sm text-right font-mono" />
+                                    class="font-mono-ds text-ds-ink2 py-1 text-xs text-right" />
                             </template>
                         </GridLayout>
-                        
+
                         <!-- No laps placeholder -->
                         <StackLayout v-else-if="!loadingRaces && getLapsForPilot(result.Pilot).length === 0" class="p-4 text-center">
-                            <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf017;" />
-                            <Label text="No laps recorded" class="text-gray-400 text-base text-center mb-1" />
-                            <Label text="This pilot hasn't completed any valid laps" class="text-gray-500 text-sm text-center" />
+                            <Label class="fa text-ds-faint text-3xl mb-2 text-center" text="&#xf017;" />
+                            <Label text="No laps recorded" class="text-ds-muted text-sm text-center mb-1" />
+                            <Label text="This pilot hasn't completed any valid laps" class="text-ds-muted2 text-xs text-center" />
                         </StackLayout>
-                        
+
                         <!-- Loading placeholder -->
                         <StackLayout v-else-if="loadingRaces" class="p-4 text-center">
-                            <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf110;" />
-                            <Label text="Loading race data..." class="text-gray-400 text-base text-center mb-1" />
-                            <Label text="Please wait while we fetch the lap times" class="text-gray-500 text-sm text-center" />
+                            <Label class="fa text-ds-faint text-3xl mb-2 text-center" text="&#xf110;" />
+                            <Label text="Loading race data..." class="text-ds-muted text-sm text-center mb-1" />
+                            <Label text="Please wait while we fetch the lap times" class="text-ds-muted2 text-xs text-center" />
                         </StackLayout>
                     </StackLayout>
                 </StackLayout>

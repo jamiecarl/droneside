@@ -122,56 +122,56 @@ onMounted(() => {
 </script>
 
 <template>
-  <GridLayout rows="*">
-    <TabView @selectedIndexChange="onTabChange">
+  <GridLayout rows="*" class="bg-ds-base">
+    <TabView class="ds-tabview" @selectedIndexChange="onTabChange">
       <TabViewItem title="Upcoming">
-        <GridLayout>
-          <ListView v-if="!loading && upcomingEvents.length > 0" :items="upcomingEvents">
+        <GridLayout class="bg-ds-base">
+          <ListView v-if="!loading && upcomingEvents.length > 0" :items="upcomingEvents" class="bg-ds-base">
             <template #default="{ item: event }">
-              <GridLayout class="px-3">
+              <GridLayout class="px-4">
                 <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
-                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-3 rounded-md" />
+                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-2.5" />
               </GridLayout>
             </template>
           </ListView>
-          <Label v-else-if="!loading && upcomingEvents.length === 0" 
-                 text="No upcoming events found" 
-                 class="text-center text-gray-500" />
-          <Label v-else text="Loading events..." class="text-center text-gray-500" />
+          <Label v-else-if="!loading && upcomingEvents.length === 0"
+                 text="No upcoming events found"
+                 class="text-center text-ds-muted mt-8" />
+          <Label v-else text="Loading events..." class="text-center text-ds-muted mt-8" />
         </GridLayout>
       </TabViewItem>
-      
+
       <TabViewItem title="Recent">
-        <GridLayout>
-          <ListView v-if="!loading && recentEvents.length > 0" :items="recentEvents">
+        <GridLayout class="bg-ds-base">
+          <ListView v-if="!loading && recentEvents.length > 0" :items="recentEvents" class="bg-ds-base">
             <template #default="{ item: event }">
-              <GridLayout class="px-3">
+              <GridLayout class="px-4">
                 <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
-                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-3 rounded-md" />
+                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-2.5" />
               </GridLayout>
             </template>
           </ListView>
-          <Label v-else-if="!loading && recentEvents.length === 0" 
-                 text="No recent events found" 
-                 class="text-center text-gray-500" />
-          <Label v-else text="Loading events..." class="text-center text-gray-500" />
+          <Label v-else-if="!loading && recentEvents.length === 0"
+                 text="No recent events found"
+                 class="text-center text-ds-muted mt-8" />
+          <Label v-else text="Loading events..." class="text-center text-ds-muted mt-8" />
         </GridLayout>
       </TabViewItem>
-      
+
       <TabViewItem title="Previous">
-        <GridLayout>
-          <ListView v-if="!loading && previousEvents.length > 0" :items="previousEvents">
+        <GridLayout class="bg-ds-base">
+          <ListView v-if="!loading && previousEvents.length > 0" :items="previousEvents" class="bg-ds-base">
             <template #default="{ item: event }">
-              <GridLayout class="px-3">
+              <GridLayout class="px-4">
                 <ClubEventHeader row="0" :event="event" :formatDate="formatDate"
-                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-3 rounded-md" />
+                  @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="mt-2.5" />
               </GridLayout>
             </template>
           </ListView>
-          <Label v-else-if="!loading && previousEvents.length === 0" 
-                 text="No previous events found" 
-                 class="text-center text-gray-500" />
-          <Label v-else text="Loading events..." class="text-center text-gray-500" />
+          <Label v-else-if="!loading && previousEvents.length === 0"
+                 text="No previous events found"
+                 class="text-center text-ds-muted mt-8" />
+          <Label v-else text="Loading events..." class="text-center text-ds-muted mt-8" />
         </GridLayout>
       </TabViewItem>
     </TabView>

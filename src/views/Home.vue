@@ -122,13 +122,13 @@ const bottomToolbarStyle = computed(() => {
 
 <template>
   <Frame>
-    <Page>
-      <ActionBar>
-        <Label :text="pageTitle" class="font-bold text-lg" />
+    <Page class="bg-ds-base">
+      <ActionBar class="bg-ds-base">
+        <Label :text="pageTitle" class="font-bold text-lg text-ds-ink" />
         <ActionItem v-if="showRefreshButton" text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
       </ActionBar>
 
-      <GridLayout rows="*, auto, auto">
+      <GridLayout rows="*, auto, auto" class="bg-ds-base">
         <!-- Main Content Area -->
         <ContentView row="0">
           <Dashboard v-if="activeTab === 'home'" ref="dashboardRef" />

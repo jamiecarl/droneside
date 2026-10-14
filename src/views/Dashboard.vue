@@ -104,66 +104,57 @@ onMounted(() => {
 </script>
 
 <template>
-  <GridLayout rows="*">
+  <GridLayout rows="*" class="bg-ds-base">
     <StackLayout v-if="!selectedClub && !loading" class="p-8 text-center">
       <!-- Welcome Icon -->
-      <Label class="text-8xl mb-6 text-blue-500 fa" text="&#xf015;" />
-      
+      <Label class="text-7xl mb-6 text-ds-cyan fa" text="&#xf015;" />
+
       <!-- Welcome Message -->
-      <Label text="Welcome to DroneSide" class="text-3xl font-bold text-white mb-4" textWrap="true" />
-      
+      <Label text="Welcome to Droneside" class="text-3xl font-bold text-ds-ink mb-4" textWrap="true" />
+
       <!-- Getting Started -->
-      <StackLayout class="bg-gray-100 p-6 rounded-lg mb-6 mt-8" style="padding-top: 24; padding-bottom: 24;">
-        <Label text="Getting Started" class="text-lg font-semibold text-gray-700 mb-6" />
-        <Label text="Browse events in the Explore tab or select a club from the Clubs tab to see personalized content here." class="text-base text-gray-600 text-center" textWrap="true" style="line-height: 1.3;" />
+      <StackLayout class="bg-ds-surface border border-ds-line p-6 rounded-2xl mb-6 mt-8">
+        <Label text="Getting Started" class="font-mono-ds text-xs tracking-wide uppercase text-ds-muted2 mb-3" />
+        <Label text="Browse events in the Explore tab or select a club from the Clubs tab to see personalized content here." class="text-base text-ds-muted text-center" textWrap="true" style="line-height: 1.3;" />
       </StackLayout>
     </StackLayout>
 
-    <GridLayout v-else-if="selectedClub" rows="auto, *">
+    <GridLayout v-else-if="selectedClub" rows="auto, *" class="bg-ds-base">
       <!-- Home Club Header -->
-      <GridLayout row="0" columns="auto, *" class="p-4 bg-gray-800 mb-4">
-        <Image col="0" v-if="selectedClub.LogoUrl" :src="selectedClub.LogoUrl" 
-               class="w-32 object-cover rounded-lg mr-4" 
-               verticalAlignment="center" horizontalAlignment="left"
-               @tap="goToClubDetails" />
-        <Image col="0" v-else src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" 
-               class="w-16 object-cover rounded-lg mr-4" 
-               verticalAlignment="center" horizontalAlignment="left"
-               @tap="goToClubDetails" />
-        
+      <GridLayout row="0" columns="auto, *, auto" class="px-4 pt-2 pb-4" @tap="goToClubDetails">
+        <Image v-if="selectedClub.LogoUrl" col="0" :src="selectedClub.LogoUrl"
+               class="h-11 w-11 object-cover rounded-xl mr-3" verticalAlignment="center" />
+        <Image v-else col="0" src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png"
+               class="h-11 w-11 object-cover rounded-xl mr-3" verticalAlignment="center" />
+
         <StackLayout col="1" verticalAlignment="center">
-          <Label class="text-yellow-400 text-lg font-bold mb-1">
-            <FormattedString>
-              <Span class="fa" text="&#xf015;" />
-              <Span text=" Your Home Club" />
-            </FormattedString>
-          </Label>
-          <Label :text="selectedClub.Name" class="text-white text-xl font-bold mb-1" textWrap="true" style="line-height: 1.2;" />
-          <Label v-if="recentAndUpcomingEvents.length > 0" :text="`${recentAndUpcomingEvents.length} Recent & Upcoming Events`" class="text-gray-300 text-sm" />
-          <Label v-else text="No recent events" class="text-gray-300 text-sm" />
+          <Label text="HOME CLUB" class="font-mono-ds text-[10px] tracking-widest text-ds-muted2 mb-0.5" />
+          <Label :text="selectedClub.Name" class="text-ds-ink text-base font-semibold" textWrap="true" />
         </StackLayout>
+        <Label col="2" class="fa text-ds-muted2 text-lg" text="&#xf105;" verticalAlignment="center" />
       </GridLayout>
 
       <!-- Club Events List -->
       <ScrollView row="1" v-if="recentAndUpcomingEvents.length > 0">
-        <StackLayout class="px-3">
-          <GridLayout v-for="event in recentAndUpcomingEvents" :key="event.ID" class="mb-3">
+        <StackLayout class="px-4">
+          <Label text="UPCOMING &amp; RECENT" class="font-mono-ds text-[10px] tracking-widest text-ds-muted2 mb-2" />
+          <GridLayout v-for="event in recentAndUpcomingEvents" :key="event.ID" class="mb-2.5">
             <ClubEventHeader :event="event" :formatDate="formatDate"
-              @tap="$navigateTo(EventDetails, { props: { event, channels } })" class="rounded-md" />
+              @tap="$navigateTo(EventDetails, { props: { event, channels } })" />
           </GridLayout>
         </StackLayout>
       </ScrollView>
 
       <StackLayout v-else row="1" class="p-8 text-center">
-        <Label text="◯" class="text-6xl mb-4 text-gray-500" />
-        <Label text="No events to show" class="text-xl text-gray-500 mb-2" />
-        <Label text="Check the Explore tab for more events" class="text-sm text-gray-400" textWrap="true" />
+        <Label class="text-5xl mb-4 text-ds-faint fa" text="&#xf017;" />
+        <Label text="No events to show" class="text-lg text-ds-muted mb-2" />
+        <Label text="Check the Explore tab for more events" class="text-sm text-ds-muted2" textWrap="true" />
       </StackLayout>
     </GridLayout>
 
     <StackLayout v-else-if="loading" class="p-8 text-center">
       <ActivityIndicator busy="true" class="h-16 w-16 mb-4" />
-      <Label text="Loading your home club..." class="text-center text-gray-500" />
+      <Label text="Loading your home club..." class="text-center text-ds-muted" />
     </StackLayout>
   </GridLayout>
 </template>

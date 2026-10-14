@@ -62,42 +62,43 @@ onMounted(() => {
 </script>
 
 <template>
-  <GridLayout rows="auto, *">
+  <GridLayout rows="auto, *" class="bg-ds-base">
     <!-- Search Field -->
-    <GridLayout row="0" columns="*, auto" class="p-3 bg-gray-100">
-      <TextField col="0" v-model="searchText" 
+    <GridLayout row="0" columns="*, auto" class="p-4 pb-3 bg-ds-base"
+                :class="searchText.trim() ? 'border border-ds-cyan rounded-xl' : 'border border-ds-line rounded-xl'">
+      <TextField col="0" v-model="searchText"
                  hint="Search clubs by name..."
-                 class="bg-white border border-gray-300 rounded-lg px-3 py-2 mr-2" />
-      <Label col="1" class="fa text-xl py-2 px-3" text="&#xf00d;"
-             :class="searchText.trim() ? 'text-gray-600' : 'text-gray-300'"
+                 class="text-ds-ink px-3 py-2" />
+      <Label col="1" class="fa text-lg py-2 px-3" text="&#xf00d;"
+             :class="searchText.trim() ? 'text-ds-cyan' : 'text-ds-faint'"
              verticalAlignment="center"
              @tap="searchText.trim() ? searchText = '' : null" />
     </GridLayout>
 
     <!-- Clubs List -->
-    <GridLayout row="1">
-      <ListView v-if="!loadingClubs && filteredClubs.length > 0" :items="filteredClubs">
+    <GridLayout row="1" class="bg-ds-base">
+      <ListView v-if="!loadingClubs && filteredClubs.length > 0" :items="filteredClubs" class="bg-ds-base">
         <template #default="{ item: club }">
-          <GridLayout class="px-3">
-            <GridLayout columns="auto, *" class="bg-white p-4 mt-3 rounded-md"
+          <GridLayout class="px-4">
+            <GridLayout columns="auto, *" class="bg-ds-surface border border-ds-line rounded-2xl p-3.5 mt-2.5"
                         @tap="$navigateTo(ClubDetails, { props: { clubId: club.ID } })">
-              <Image v-if="club.LogoUrl !== null" col="0" :src="club.LogoUrl" class="h-24 w-24 object-cover rounded-lg mr-3" />
-              <Image v-else col="0" src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" class="h-24 w-24 object-cover rounded-lg mr-3" />
-              <StackLayout col="1">
-                <Label :text="club.Name" class="text-md font-bold text-black mb-2" />
-                <Label :text="club.Timezone" class="text-sm text-gray-400" />
+              <Image v-if="club.LogoUrl !== null" col="0" :src="club.LogoUrl" class="h-11 w-11 object-cover rounded-xl mr-3" />
+              <Image v-else col="0" src="https://fpvtrackside.com/assets/defaultclub-iJLq4-Em.png" class="h-11 w-11 object-cover rounded-xl mr-3" />
+              <StackLayout col="1" verticalAlignment="center">
+                <Label :text="club.Name" class="text-base font-semibold text-ds-ink mb-0.5" textWrap="true" />
+                <Label :text="club.Timezone" class="font-mono-ds text-xs text-ds-muted" />
               </StackLayout>
             </GridLayout>
           </GridLayout>
         </template>
       </ListView>
-      <Label v-else-if="!loadingClubs && filteredClubs.length === 0 && searchText.trim()" 
-             :text="`No clubs found matching &quot;${searchText}&quot;`" 
-             class="text-center text-gray-500" />
-      <Label v-else-if="!loadingClubs && clubs.length === 0" 
-             text="No clubs found" 
-             class="text-center text-gray-500" />
-      <Label v-else-if="loadingClubs" text="Loading clubs..." class="text-center text-gray-500" />
+      <Label v-else-if="!loadingClubs && filteredClubs.length === 0 && searchText.trim()"
+             :text="`No clubs found matching &quot;${searchText}&quot;`"
+             class="text-center text-ds-muted mt-8" />
+      <Label v-else-if="!loadingClubs && clubs.length === 0"
+             text="No clubs found"
+             class="text-center text-ds-muted mt-8" />
+      <Label v-else-if="loadingClubs" text="Loading clubs..." class="text-center text-ds-muted mt-8" />
     </GridLayout>
   </GridLayout>
 </template>

@@ -5,7 +5,7 @@ import { defineProps, ref, onMounted } from 'nativescript-vue';
 import type { PilotType, RoundType, RawRaceDataType, RaceDetailType, LapType } from 'types/events.vue';
 import { formatRaceTime } from '~/utils/formatRaceTime';
 import RaceDetails from './RaceDetails.vue';
-import { get } from 'http';
+import LapSparkline from '../components/LapSparkline.vue';
 
 const props = defineProps<{ pilot: PilotType, eventId: string, pilots: PilotType[] }>();
 const loadingDetails = ref(true);
@@ -15,6 +15,31 @@ const raceSummaries = ref<{ [key: string]: any }>({});
 const rawRaceDetails = ref<{ [key: string]: RawRaceDataType }>({});
 
 const raceSummariesCount = computed(() => Object.keys(raceSummaries.value).length);
+
+const overallBestLap = computed(() => {
+  const times = Object.values(raceSummaries.value)
+    .map((summary: any) => parseFloat(summary.PbLapTime))
+    .filter((time) => !isNaN(time) && time > 0);
+  return times.length > 0 ? Math.min(...times).toFixed(2) : null;
+});
+
+const totalPoints = computed(() => {
+  return Object.values(raceSummaries.value).reduce((sum, summary: any) => {
+    const points = parseInt(summary.Points);
+    return sum + (isNaN(points) ? 0 : points);
+  }, 0);
+});
+
+// Every lap this pilot has flown across the event, in round order — for the aggregate sparkline.
+const allLapsThisEvent = computed(() => {
+  return Object.values(rounds.value)
+    .sort((a: RoundType, b: RoundType) => parseInt(a.RoundNumber) - parseInt(b.RoundNumber))
+    .flatMap((round: RoundType) => {
+      const summary = raceSummaries.value[round.ID];
+      if (!summary) return [];
+      return getLapsForPilot(summary.Race, props.pilot.ID).map((lap) => lap.LengthSeconds);
+    });
+});
 
 async function fetchRounds(eventId: string) {
   try {
@@ -101,108 +126,103 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page>
-    <ActionBar>
+  <Page class="bg-ds-base">
+    <ActionBar class="bg-ds-base">
       <NavigationButton text="Back" android.systemIcon="ic_menu_back" @tap="$navigateBack" />
-      <Label text="Pilot Details" class="font-bold text-lg" />
+      <Label text="Pilot" class="font-bold text-lg text-ds-ink" />
       <ActionItem text="Refresh" android.systemIcon="ic_menu_refresh" @tap="refreshData" />
     </ActionBar>
-    <GridLayout rows="auto, *">
+    <GridLayout rows="auto, auto, *" class="bg-ds-base">
       <!-- Fixed header section -->
-      <GridLayout row="0" columns="auto, *" class="p-3 bg-white">
-        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL.startsWith('/') ? 'https://fpvtrackside.com' + pilot.PhotoURL : pilot.PhotoURL" class="h-16 w-16 object-cover rounded-lg mr-3" />
-        <Image col="0" v-else src="~/assets/pilot.png" class="h-16 w-16 object-cover rounded-lg mr-3" />
-        <StackLayout col="1" class="bg-transparent">
-          <Label :text="props.pilot.Name" class="text-black font-bold text-2xl" />
+      <GridLayout row="0" columns="auto, *" class="px-5 pt-2 pb-4">
+        <Image col="0" v-if="pilot.PhotoURL" :src="pilot.PhotoURL.startsWith('/') ? 'https://fpvtrackside.com' + pilot.PhotoURL : pilot.PhotoURL" class="h-16 w-16 object-cover rounded-2xl mr-3.5" />
+        <Image col="0" v-else src="~/assets/pilot.png" class="h-16 w-16 object-cover rounded-2xl mr-3.5" />
+        <StackLayout col="1" verticalAlignment="center">
+          <Label :text="props.pilot.Name" class="text-ds-ink font-bold text-2xl" />
           <Label v-if="props.pilot.FirstName || props.pilot.LastName"
-            :text="props.pilot.FirstName + ' ' + props.pilot.LastName" class="text-gray-600 font-semibold text-lg" />
-          <Label v-if="props.pilot.CatchPhrase" :text="props.pilot.CatchPhrase" class="text-gray-500" />
+            :text="props.pilot.FirstName + ' ' + props.pilot.LastName" class="text-ds-muted2 text-sm mt-0.5" />
+          <Label v-if="props.pilot.CatchPhrase" :text="props.pilot.CatchPhrase" class="font-mono-ds text-ds-muted text-xs mt-0.5" />
         </StackLayout>
       </GridLayout>
+
+      <!-- Stat tiles -->
+      <GridLayout row="1" columns="*, *" class="px-4 pb-4 bg-transparent">
+        <StackLayout col="0" class="stat-tile mr-1.5">
+          <Label text="BEST LAP" class="stat-tile-label" />
+          <Label :text="overallBestLap ?? 'NA'" class="stat-tile-value text-ds-cyan" />
+        </StackLayout>
+        <StackLayout col="1" class="stat-tile ml-1.5">
+          <Label text="POINTS" class="stat-tile-label" />
+          <Label :text="totalPoints.toString()" class="stat-tile-value" />
+        </StackLayout>
+      </GridLayout>
+
       <!-- Scrollable content -->
-      <ScrollView row="1" v-if="!loadingDetails">
-        <StackLayout class="p-3 bg-black">
-          <StackLayout v-for="round in rounds" :key="round.ID" class="p-4 my-2 bg-gray-800 rounded-md"
-            @tap="$navigateTo(RaceDetails, { props: { race: getRaceById(round.ID), pilots: props.pilots, round: getRoundById(round.ID) } })">
-            <GridLayout columns="*" class="bg-transparent">
-              <StackLayout col="0">
-                <!-- Round title and position/points header -->
-                <GridLayout columns="*, auto" class="bg-transparent">
-                  <StackLayout col="0" verticalAlignment="top">
-                    <Label :text="'Round #' + round.RoundNumber" class="text-white text-xl font-bold" />
-                    <Label v-if="raceSummaries[round.ID]?.LapCount" :text="raceSummaries[round.ID]?.LapCount + ' laps'" class="text-gray-400 text-sm" />
-                  </StackLayout>
-                  <GridLayout col="1" rows="auto, auto" class="bg-transparent">
-                    <Label v-if="round.EventType !== 'TimeTrial' && raceSummaries[round.ID]" row="0" width="40" height="40"
-                      :text="raceSummaries[round.ID]?.Position || 'NA'"
-                      class="text-xl font-bold text-black text-center rounded-md"
-                      :class="'medal-' + (raceSummaries[round.ID]?.Position || '8')" />
-                    <Label v-if="parseInt(raceSummaries[round.ID]?.Points) > 0" row="1"
-                      :text="raceSummaries[round.ID]?.Points + ' points'" class="text-white text-xs" />
-                  </GridLayout>
-                </GridLayout>
-                
-                <!-- Race timing display - single row layout -->
-                <GridLayout v-if="round.EventType !== 'TimeTrial' && raceSummaries[round.ID]" columns="*, *, *" class="bg-transparent mt-4 mb-5 text-xs">
-                  <StackLayout col="0" class="bg-transparent text-center">
-                    <Label text="Holeshot" class="text-gray-400 mb-1 text-base" />
-                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.HoleshotTime || 'NA')" class="text-yellow-400 text-base" />
-                  </StackLayout>
-                  <StackLayout col="1" class="bg-transparent text-center">
-                    <Label text="Best" class="text-gray-400 mb-1 text-base" />
-                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
-                  </StackLayout>
-                  <StackLayout col="2" class="bg-transparent text-center">
-                    <Label text="Race" class="text-gray-400 mb-1 text-base" />
-                    <Label :text="formatRaceTime(raceSummaries[round.ID]?.RaceTime || (raceSummaries[round.ID]?.Position?'DNF':'-'))" class="text-white text-base" />
-                  </StackLayout>
-                </GridLayout>
-                <!-- TimeTrial layout - only shows Best -->
-                <StackLayout v-else-if="round.EventType === 'TimeTrial' && raceSummaries[round.ID]" class="bg-transparent mt-4 mb-5 text-xs text-center">
-                  <Label text="Best" class="text-gray-400 mb-1 text-base" />
-                  <Label :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || 'NA')" class="text-green-500 text-base" />
-                </StackLayout>
-              </StackLayout>
+      <ScrollView row="2" v-if="!loadingDetails">
+        <StackLayout class="px-4 bg-ds-base">
+          <StackLayout v-if="allLapsThisEvent.length > 1" class="bg-ds-surface border border-ds-line rounded-2xl p-3.5 mb-3">
+            <GridLayout columns="*, auto" class="mb-2.5 bg-transparent">
+              <Label col="0" text="EVERY LAP THIS EVENT" class="font-mono-ds text-[10px] tracking-wide text-ds-muted2" />
+              <Label col="1" :text="'PB ' + overallBestLap" class="font-mono-ds text-[10px] text-ds-cyan" />
             </GridLayout>
+            <LapSparkline :laps="allLapsThisEvent" :height="70" />
+          </StackLayout>
+
+          <StackLayout v-for="round in rounds" :key="round.ID" class="p-3.5 mb-2.5 bg-ds-surface border border-ds-line rounded-2xl"
+            @tap="$navigateTo(RaceDetails, { props: { race: getRaceById(round.ID), pilots: props.pilots, round: getRoundById(round.ID) } })">
+            <!-- Round title and position/points header -->
+            <GridLayout columns="auto, *, auto" class="bg-transparent mb-2.5">
+              <Label col="0" :text="'R' + round.RoundNumber" class="font-mono-ds text-ds-muted text-sm mr-2.5" />
+              <Label col="1" :text="'Round ' + round.RoundNumber" class="text-ds-ink2 font-semibold text-base" />
+              <Label v-if="round.EventType !== 'TimeTrial' && raceSummaries[round.ID]" col="2"
+                :text="'P' + (raceSummaries[round.ID]?.Position || '-')"
+                class="font-mono-ds text-xs rounded-md px-1.5 py-0.5 mr-2"
+                :class="raceSummaries[round.ID]?.Position === '1'
+                  ? 'text-ds-cyan bg-ds-cyan-surface border border-ds-cyan-border'
+                  : 'text-ds-muted border border-ds-line'" />
+              <Label v-if="raceSummaries[round.ID]" col="3" :text="formatRaceTime(raceSummaries[round.ID]?.PbLapTime || raceSummaries[round.ID]?.RaceTime || 'NA')"
+                class="font-mono-ds text-ds-ink text-base" />
+            </GridLayout>
+
             <!-- No laps placeholder -->
             <StackLayout v-if="raceSummaries[round.ID]?.LapCount === 0" class="p-4 text-center">
-              <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf017;" />
-              <Label text="No laps recorded" class="text-gray-400 text-base text-center mb-1" />
-              <Label text="This pilot hasn't completed any valid laps yet" class="text-gray-500 text-sm text-center" />
+              <Label class="fa text-ds-faint text-3xl mb-2 text-center" text="&#xf017;" />
+              <Label text="No laps recorded" class="text-ds-muted text-sm text-center mb-1" />
+              <Label text="This pilot hasn't completed any valid laps yet" class="text-ds-muted2 text-xs text-center" />
             </StackLayout>
             <GridLayout v-else-if="getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID).length > 0"
-              :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *" 
-              class="bg-gray-900 rounded-md p-3 mt-3">
+              :rows="`auto${', auto'.repeat(raceSummaries[round.ID]?.LapCount)}`" columns="*, *"
+              class="bg-ds-surface2 rounded-xl p-3">
               <!-- Header Row -->
-              <Label row="0" col="0" text="Lap" class="text-white font-bold text-sm pb-2"
-                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
-              <Label row="0" col="1" text="Time" class="text-white font-bold text-sm pb-2 text-right"
-                style="border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.2);" />
+              <Label row="0" col="0" text="LAP" class="font-mono-ds text-ds-muted2 text-[10px] tracking-wide pb-2"
+                style="border-bottom-width: 1px; border-bottom-color: #1F242B;" />
+              <Label row="0" col="1" text="TIME" class="font-mono-ds text-ds-muted2 text-[10px] tracking-wide pb-2 text-right"
+                style="border-bottom-width: 1px; border-bottom-color: #1F242B;" />
               <!-- Data Rows -->
               <template v-for="(lap, index) in getLapsForPilot(raceSummaries[round.ID]?.Race, props.pilot.ID)"
                 :key="lap.ID">
-                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber" 
-                    class="text-gray-300 py-1 text-sm" />
+                <Label :row="index + 1" col="0" :text="'#' + lap.LapNumber"
+                    class="font-mono-ds text-ds-muted py-1 text-xs" />
                 <Label :row="index + 1" col="1" :text="lap.LengthSeconds.toFixed(2)"
-                    class="text-white py-1 text-sm text-right font-mono" />
+                    class="font-mono-ds text-ds-ink2 py-1 text-xs text-right" />
               </template>
             </GridLayout>
             <!-- No data placeholder -->
             <StackLayout v-else-if="!(raceSummaries[round.ID]?.LapCount > 0)" class="p-4 text-center">
-              <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf017;" />
-              <Label text="No data available" class="text-gray-400 text-base text-center mb-1" />
-              <Label text="Race data is not available for this round" class="text-gray-500 text-sm text-center" />
+              <Label class="fa text-ds-faint text-3xl mb-2 text-center" text="&#xf017;" />
+              <Label text="No data available" class="text-ds-muted text-sm text-center mb-1" />
+              <Label text="Race data is not available for this round" class="text-ds-muted2 text-xs text-center" />
             </StackLayout>
             <!-- Loading placeholder -->
             <StackLayout v-else class="p-4 text-center">
-              <Label class="fa text-gray-500 text-4xl mb-2 text-center" text="&#xf110;" />
-              <Label text="Loading lap times..." class="text-gray-400 text-base text-center mb-1" />
-              <Label text="Please wait while we fetch the data" class="text-gray-500 text-sm text-center" />
+              <Label class="fa text-ds-faint text-3xl mb-2 text-center" text="&#xf110;" />
+              <Label text="Loading lap times..." class="text-ds-muted text-sm text-center mb-1" />
+              <Label text="Please wait while we fetch the data" class="text-ds-muted2 text-xs text-center" />
             </StackLayout>
           </StackLayout>
         </StackLayout>
       </ScrollView>
-      <ActivityIndicator row="1" v-else busy="true" class="h-16 w-16" />
+      <ActivityIndicator row="2" v-else busy="true" class="h-16 w-16" />
     </GridLayout>
   </Page>
 </template>
