@@ -88,7 +88,7 @@ import com.jamiecarl.droneside.ui.theme.MonoDs
 import kotlinx.coroutines.delay
 
 @Composable
-fun LiveScreen(refreshKey: Int, onOpenSettings: () -> Unit, viewModel: LiveViewModel = viewModel()) {
+fun LiveScreen(refreshKey: Int, viewModel: LiveViewModel = viewModel()) {
     LaunchedEffect(refreshKey) { viewModel.load(refreshKey) }
     LifecycleStartEffect(viewModel) {
         viewModel.onVisible()
@@ -112,15 +112,13 @@ fun LiveScreen(refreshKey: Int, onOpenSettings: () -> Unit, viewModel: LiveViewM
             onSelectClub = viewModel::selectClub,
             onSelectEvent = viewModel::selectEvent,
             alerts = {
-                RaceAlertsCard(
+                RaceAlertToggle(
                     callsign = state.callsign,
-                    watching = state.alertsWatching,
-                    clubName = club.name,
+                    on = state.alertsWatching != null,
                     pilotNames = pilotNames(state.session.snapshot),
                     onSetCallsign = viewModel::setCallsign,
                     onStart = viewModel::startAlerts,
-                    onStop = viewModel::stopAlerts,
-                    onOpenSettings = onOpenSettings
+                    onStop = viewModel::stopAlerts
                 )
             }
         )
@@ -184,9 +182,8 @@ private fun LiveContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item(key = "club") {
-            ClubBar(club, state.clubs, session.connection.takeIf { snapshot != null }, onSelectClub)
+            ClubBar(club, state.clubs, session.connection.takeIf { snapshot != null }, onSelectClub, trailing = alerts)
         }
-        item(key = "alerts") { alerts() }
         if (snapshot != null) {
             item(key = "event") {
                 EventBar(snapshot.eventName, snapshot.events, snapshot.eventId, state.pinnedEventId, onSelectEvent)
@@ -245,24 +242,41 @@ private fun LiveContent(
 }
 
 @Composable
-private fun ClubBar(club: LiveClub, clubs: List<LiveClub>, connection: LiveConnection?, onSelect: (LiveClub) -> Unit) {
+private fun ClubBar(
+    club: LiveClub,
+    clubs: List<LiveClub>,
+    connection: LiveConnection?,
+    onSelect: (LiveClub) -> Unit,
+    trailing: @Composable () -> Unit
+) {
     var open by remember { mutableStateOf(false) }
     Box {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .dsCard()
-                .clickable(role = Role.Button, onClickLabel = "Change club") { open = true }
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(end = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ClubLogo(club.logoUrl, modifier = Modifier.size(36.dp), cornerRadius = 11.dp)
-            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                SectionLabel("WATCHING")
-                Text(club.name, color = DsInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // The club picker is the logo, name and chevron; the trailing button keeps its own tap.
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(role = Role.Button, onClickLabel = "Change club") { open = true }
+                    .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ClubLogo(club.logoUrl, modifier = Modifier.size(36.dp), cornerRadius = 11.dp)
+                Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        SectionLabel("WATCHING")
+                        if (connection != null) ConnectionTag(connection, modifier = Modifier.padding(start = 8.dp))
+                    }
+                    Text(club.name, color = DsInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Icon(DsIcons.ChevronDown, contentDescription = null, tint = DsMuted, modifier = Modifier.size(18.dp))
             }
-            if (connection != null) ConnectionPill(connection)
-            Icon(DsIcons.ChevronDown, contentDescription = null, tint = DsMuted, modifier = Modifier.padding(start = 8.dp).size(18.dp))
+            trailing()
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }, modifier = Modifier.background(DsSurface)) {
             clubs.forEach { c ->
@@ -275,31 +289,24 @@ private fun ClubBar(club: LiveClub, clubs: List<LiveClub>, connection: LiveConne
     }
 }
 
-private data class PillStyle(val label: String, val ink: Color, val dot: Color, val surface: Color, val border: Color)
-
+/** Stream status beside the "WATCHING" label: a dot and a word. */
 @Composable
-private fun ConnectionPill(connection: LiveConnection) {
-    val style = when (connection) {
-        LiveConnection.LIVE -> PillStyle("LIVE", DsLiveInk, DsLive, DsLiveSurface, DsLiveBorder)
-        LiveConnection.CONNECTING -> PillStyle("CONNECTING", DsMuted, DsMuted, DsSurface2, DsLine)
-        LiveConnection.RECONNECTING -> PillStyle("RECONNECTING", DsHoleshot, DsHoleshot, DsSurface2, DsLine)
+private fun ConnectionTag(connection: LiveConnection, modifier: Modifier = Modifier) {
+    val (label, ink, dot) = when (connection) {
+        LiveConnection.LIVE -> Triple("LIVE", DsLiveInk, DsLive)
+        LiveConnection.CONNECTING -> Triple("CONNECTING", DsMuted, DsMuted)
+        LiveConnection.RECONNECTING -> Triple("RECONNECTING", DsHoleshot, DsHoleshot)
     }
-    Row(
-        modifier = Modifier
-            .background(style.surface, RoundedCornerShape(999.dp))
-            .border(1.dp, style.border, RoundedCornerShape(999.dp))
-            .padding(horizontal = 9.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(Modifier.size(7.dp).background(style.dot, CircleShape))
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(6.dp).background(dot, CircleShape))
         Text(
-            style.label,
+            label,
             fontFamily = MonoDs,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.8.sp,
-            color = style.ink,
-            modifier = Modifier.padding(start = 6.dp)
+            letterSpacing = 1.sp,
+            color = ink,
+            modifier = Modifier.padding(start = 5.dp)
         )
     }
 }

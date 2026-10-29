@@ -8,21 +8,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,158 +28,103 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jamiecarl.droneside.ui.components.DsIcons
-import com.jamiecarl.droneside.ui.components.SectionLabel
 import com.jamiecarl.droneside.ui.components.dsCard
 import com.jamiecarl.droneside.ui.theme.DsCyan
 import com.jamiecarl.droneside.ui.theme.DsCyanBorder
 import com.jamiecarl.droneside.ui.theme.DsCyanSurface
 import com.jamiecarl.droneside.ui.theme.DsFaint
 import com.jamiecarl.droneside.ui.theme.DsInk
-import com.jamiecarl.droneside.ui.theme.DsInk2
 import com.jamiecarl.droneside.ui.theme.DsLine
 import com.jamiecarl.droneside.ui.theme.DsLive
 import com.jamiecarl.droneside.ui.theme.DsLiveBorder
-import com.jamiecarl.droneside.ui.theme.DsLiveInk
 import com.jamiecarl.droneside.ui.theme.DsLiveSurface
 import com.jamiecarl.droneside.ui.theme.DsMuted
-import com.jamiecarl.droneside.ui.theme.DsOnCyan
-import com.jamiecarl.droneside.ui.theme.DsRaised
 import com.jamiecarl.droneside.ui.theme.DsSurface
+import com.jamiecarl.droneside.ui.theme.DsSurface2
 
 /**
- * "Race alerts": the pilot's callsign and the switch for background alerts. [pilotNames] (from the dashboard)
- * feed the callsign picker so it matches the timing system's spelling exactly.
+ * Race alerts as a bell button: hollow when off, solid green when on. With no callsign yet, the first tap asks
+ * for one. Settings holds the rest (sound, which alerts, …); a toast says what changed.
  */
 @Composable
-fun RaceAlertsCard(
+fun RaceAlertToggle(
     callsign: String?,
-    watching: String?,
-    clubName: String,
+    on: Boolean,
     pilotNames: List<String>,
     onSetCallsign: (String) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onOpenSettings: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var editing by remember { mutableStateOf(false) }
+    var askingCallsign by remember { mutableStateOf(false) }
+
+    fun started(name: String) {
+        onStart()
+        Toast.makeText(context, "Race alerts on: you'll be alerted when $name is up next", Toast.LENGTH_SHORT).show()
+    }
+
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) onStart()
+        if (granted) callsign?.let(::started)
         else Toast.makeText(context, "Allow notifications for DroneSide to get race alerts", Toast.LENGTH_LONG).show()
     }
-    val enable = {
+
+    fun enable(name: String) {
         val needsAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        if (needsAsk) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onStart()
+        if (needsAsk) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else started(name)
     }
-    val on = watching != null
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
+    val label = if (on) "Turn off race alerts" else "Turn on race alerts"
+    Box(
+        modifier = modifier
+            .size(40.dp)
             .dsCard(
                 radius = 20.dp,
-                background = if (on) DsLiveSurface else DsSurface,
+                background = if (on) DsLiveSurface else DsSurface2,
                 border = if (on) DsLiveBorder else DsLine
             )
-            .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(DsIcons.Bell, contentDescription = null, tint = if (on) DsLive else DsMuted, modifier = Modifier.size(18.dp))
-            SectionLabel("RACE ALERTS", modifier = Modifier.padding(start = 8.dp).weight(1f), color = if (on) DsLiveInk else DsMuted)
-            if (callsign != null) {
-                Switch(
-                    checked = on,
-                    onCheckedChange = { if (it) enable() else onStop() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = DsOnCyan,
-                        checkedTrackColor = DsLive,
-                        uncheckedThumbColor = DsMuted,
-                        uncheckedTrackColor = DsRaised,
-                        uncheckedBorderColor = DsLine
-                    )
-                )
-            }
-        }
-        if (callsign == null) {
-            Text(
-                "Get a loud alert when you're in the next heat, even with the app closed.",
-                color = DsInk2,
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
-            Text(
-                "Set your callsign",
-                color = DsOnCyan,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .padding(top = 4.dp)
-                    .dsCard(radius = 20.dp, background = DsCyan, border = DsCyan)
-                    .clickable(role = Role.Button) { editing = true }
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            )
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    callsign,
-                    color = DsInk,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                Text(
-                    "Edit",
-                    color = DsCyan,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(role = Role.Button, onClickLabel = "Edit callsign") { editing = true }
-                        .padding(horizontal = 6.dp, vertical = 6.dp)
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "Alert settings",
-                    color = DsCyan,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(role = Role.Button, onClick = onOpenSettings)
-                        .padding(horizontal = 6.dp, vertical = 6.dp)
-                )
-            }
-            Text(
+            .semantics { stateDescription = if (on) "On" else "Off" }
+            .clickable(role = Role.Switch, onClickLabel = label) {
                 when {
-                    watching != null -> "Watching $watching in the background. You'll get an alarm when you're up next and again when your heat is on the line."
-                    else -> "Off. Turn it on at the field to watch $clubName for your heats."
-                },
-                color = if (on) DsLiveInk else DsMuted,
-                fontSize = 13.sp,
-                lineHeight = 18.sp
-            )
-        }
+                    on -> {
+                        onStop()
+                        Toast.makeText(context, "Race alerts off", Toast.LENGTH_SHORT).show()
+                    }
+                    callsign == null -> askingCallsign = true
+                    else -> enable(callsign)
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            if (on) DsIcons.BellFilled else DsIcons.Bell,
+            contentDescription = "Race alerts",
+            tint = if (on) DsLive else DsMuted,
+            modifier = Modifier.size(19.dp)
+        )
     }
 
-    if (editing) {
+    if (askingCallsign) {
         CallsignDialog(
-            initial = callsign.orEmpty(),
+            initial = "",
             pilotNames = pilotNames,
-            onDismiss = { editing = false },
-            onSave = { editing = false; onSetCallsign(it) }
+            onDismiss = { askingCallsign = false },
+            onSave = { name ->
+                askingCallsign = false
+                onSetCallsign(name)
+                enable(name.trim())
+            }
         )
     }
 }

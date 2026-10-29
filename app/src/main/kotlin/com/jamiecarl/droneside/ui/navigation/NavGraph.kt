@@ -172,7 +172,7 @@ fun DronesideApp(openLiveRequests: Int = 0) {
                     )
                 }
                 composable(Routes.LIVE) {
-                    LiveScreen(refreshKey = refreshKey, onOpenSettings = { navController.navigate(Routes.SETTINGS) })
+                    LiveScreen(refreshKey = refreshKey)
                 }
                 composable(Routes.SETTINGS) {
                     SettingsScreen()
