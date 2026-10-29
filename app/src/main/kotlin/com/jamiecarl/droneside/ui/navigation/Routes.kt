@@ -10,6 +10,7 @@ object Routes {
     const val DASHBOARD = "dashboard"
     const val EXPLORE = "explore"
     const val CLUBS = "clubs"
+    const val LIVE = "live"
 
     const val CLUB_DETAILS = "club/{clubId}"
     const val EVENT_DETAILS = "event/{eventId}?eventName={eventName}&clubName={clubName}"

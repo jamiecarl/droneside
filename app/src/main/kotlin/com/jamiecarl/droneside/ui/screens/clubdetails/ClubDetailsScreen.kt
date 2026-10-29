@@ -11,6 +11,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.jamiecarl.droneside.ui.components.ClubMap
 import com.jamiecarl.droneside.ui.components.openInMaps
 import com.jamiecarl.droneside.ui.theme.DsOnCyan
+import com.jamiecarl.droneside.data.live.AufpvClient
+import com.jamiecarl.droneside.data.live.LiveClub
+import com.jamiecarl.droneside.data.live.matchTracksideClub
+import com.jamiecarl.droneside.ui.components.LiveTimingLink
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,7 +76,9 @@ data class ClubDetailsUiState(
     val club: Club? = null,
     val events: List<Event> = emptyList(),
     val loadingEvents: Boolean = false,
-    val isHomeClub: Boolean = false
+    val isHomeClub: Boolean = false,
+    /** The club's AUFPV site, when it runs live timing there. */
+    val liveClub: LiveClub? = null
 )
 
 class ClubDetailsViewModel(application: Application) : AndroidViewModel(application) {
@@ -96,6 +102,10 @@ class ClubDetailsViewModel(application: Application) : AndroidViewModel(applicat
             runCatching {
                 val club = repository.getClub(clubId)
                 _state.value = _state.value.copy(loading = false, club = club)
+                // Optional extra: a failure here just means no live timing link.
+                runCatching { AufpvClient.clubs().matchTracksideClub(club.name) }.getOrNull()?.let { live ->
+                    _state.value = _state.value.copy(liveClub = live)
+                }
             }.onFailure {
                 _state.value = _state.value.copy(loading = false)
             }
@@ -130,6 +140,7 @@ fun ClubDetailsScreen(
     clubId: String,
     refreshKey: Int,
     onOpenEvent: (Event) -> Unit,
+    onOpenLive: (String) -> Unit,
     viewModel: ClubDetailsViewModel = viewModel()
 ) {
     LaunchedEffect(clubId, refreshKey) { viewModel.load(clubId, refreshKey) }
@@ -159,6 +170,15 @@ fun ClubDetailsScreen(
                     modifier = Modifier.weight(1f).padding(horizontal = 14.dp)
                 )
                 HomeClubToggle(isHome = state.isHomeClub, onToggle = { viewModel.toggleHomeClub(clubId) })
+            }
+
+            state.liveClub?.let { live ->
+                LiveTimingLink(
+                    title = "Live timing",
+                    subtitle = live.baseUrl.substringAfter("://"),
+                    onClick = { onOpenLive(live.baseUrl) },
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                )
             }
 
             SegmentedControl(

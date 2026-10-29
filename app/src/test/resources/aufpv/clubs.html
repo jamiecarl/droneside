@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en" class="nx">
+<head>
+    <meta charset="UTF-8">
+    
+    <meta name="color-scheme" content="dark">
+    <style>html,body{background:#0B0D0C;color:#ECEFEA}@view-transition{navigation:auto}:root{--surface:#141716;--surface-muted:#1B1F1D;--surface-2:#1B1F1D;--card-bg:#141716;--bg:#0B0D0C;--input-bg:#0F1211;--gray-50:#141716;--gray-100:#1B1F1D;--color-bg-card:#141716;--color-bg-secondary:#1B1F1D;--lb-surface:#141716;--lb-surface-muted:#1B1F1D}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <title>Affiliated Clubs - AUFPV</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/aufpv/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/images/aufpv/favicon-192.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <script>window.__pwaPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaPrompt=e;});</script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/images/aufpv/favicon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=2026.10.26.1669">
+    <link rel="stylesheet" href="/static/css/mobile-enhancements.css?v=2026.10.26.1669">
+    <link rel="stylesheet" href="/static/css/nx.css?v=2026.10.26.1669">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/race-control.css?v=2026.10.26.1669">
+    <style>.mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:1000;background:#0b0b0d;border-top:1px solid rgba(255,255,255,.1);padding:6px 0 calc(12px + env(safe-area-inset-bottom, 0px))}</style>
+    <meta name="description" content="The home of Australian Drone Racing. AUFPV is the national body for FPV drone racing in Australia.">
+    
+    <meta property="og:image" content="/static/images/aufpv/AUFPV_logo.png">
+    
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9WN8VBFE3E"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-9WN8VBFE3E');
+    </script>
+</head>
+<body class="nx">
+    <script>try{if(localStorage.getItem('adminMenuCollapsed')==='1')document.documentElement.classList.add('admin-menu-collapsed');}catch(e){}</script>
+
+    
+    <header class="nx-nav" id="nxNav">
+        <div class="nx-wrap">
+            <a href="/" class="nx-brand" aria-label="AUFPV home">
+                <img src="/static/images/aufpv/AUFPV_logo_small.png" alt="AUFPV">
+            </a>
+            <ul class="nx-links">
+                
+                
+                <li><a href="/">Home</a></li>
+                
+                
+                
+                <li><a href="/events">Events</a></li>
+                
+                
+                
+                <li><a href="/news">News</a></li>
+                
+                
+                
+                <li><a href="/dronedash/embed">Live</a></li>
+                
+                
+                
+                <li class="has-menu">
+                    <a href="#">Australian Drone Nationals <svg class="chev" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <ul class="nx-menu">
+                        
+                        <li class="lbl">The Event</li>
+                        
+                        
+                        <li><a href="/nationals">Brisbane 2026</a></li>
+                        
+                        
+                        <li><a href="/nationals/schedule">Event Schedule</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li class="lbl">Documents</li>
+                        
+                        
+                        <li><a href="/nationals/handbook">Pilot Handbook</a></li>
+                        
+                        
+                        <li><a href="/nationals/rulebook">Rulebook</a></li>
+                        
+                        
+                        <li><a href="/volunteers/handbook">Volunteer Handbook</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li class="lbl">Qualifying</li>
+                        
+                        
+                        <li><a href="/nationals/qualifying">Qualifying Series 2026</a></li>
+                        
+                        
+                        <li><a href="/nationals/qualifying/submit">Submit DVR</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <li><a href="/clubs">Clubs</a></li>
+                
+                
+                
+                <li class="has-menu">
+                    <a href="#">Racing <svg class="chev" viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+                    <ul class="nx-menu">
+                        
+                        <li class="lbl">Events</li>
+                        
+                        
+                        <li><a href="/events">Events</a></li>
+                        
+                        
+                        <li><a href="/calendar">National Calendar</a></li>
+                        
+                        
+                        <li><a href="/nationals/past">Past Nationals</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li class="lbl">Team Australia</li>
+                        
+                        
+                        <li><a href="https://aufpv.org.au/national-team/australian-team-fai-world-drone-racing-championship-2026">FAI World Championships 2026</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li class="lbl">Tools</li>
+                        
+                        
+                        <li><a href="/ratings">Pilot Ratings</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li><a href="/rules">Rules &amp; Regulations</a></li>
+                        
+                        
+                        <li class="div"></li>
+                        
+                        
+                        <li><a href="/pages/code-of-ethics-conduct">Code of Ethics &amp; Conduct</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <li><a href="/pilots">Pilots</a></li>
+                
+                
+                
+                <li><a href="/gallery">Gallery</a></li>
+                
+                
+                
+                <li><a href="/about">About</a></li>
+                
+                
+
+                
+                <li class="nav-cmdk-wrap">
+                    
+                    <button type="button" class="cmdk-btn" data-cmdk-open hidden aria-label="Search the site (Ctrl K)" title="Search pages, settings and tools">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                        <span class="cmdk-lbl">Search</span> <kbd>Ctrl K</kbd>
+                    </button>
+                </li>
+                
+
+            </ul>
+            <div class="nx-actions">
+                
+                <a href="/login" class="login">Log in</a>
+                <a href="/register" class="nx-btn primary join">Join</a>
+                
+                
+                <button type="button" class="nx-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+    
+    <nav class="nx-sheet" aria-label="Mobile navigation">
+        
+        
+        
+        <a href="/">Home</a>
+        
+        
+        
+        <a href="/events">Events</a>
+        
+        
+        
+        <a href="/news">News</a>
+        
+        
+        
+        <a href="/dronedash/embed">Live</a>
+        
+        
+        
+        <details>
+            <summary>Australian Drone Nationals</summary>
+            <div class="sub">
+                
+                <a href="/nationals">Brisbane 2026</a><a href="/nationals/schedule">Event Schedule</a><a href="/nationals/handbook">Pilot Handbook</a><a href="/nationals/rulebook">Rulebook</a><a href="/volunteers/handbook">Volunteer Handbook</a><a href="/nationals/qualifying">Qualifying Series 2026</a><a href="/nationals/qualifying/submit">Submit DVR</a>
+            </div>
+        </details>
+        
+        
+        
+        <a href="/clubs">Clubs</a>
+        
+        
+        
+        <details>
+            <summary>Racing</summary>
+            <div class="sub">
+                
+                <a href="/events">Events</a><a href="/calendar">National Calendar</a><a href="/nationals/past">Past Nationals</a><a href="https://aufpv.org.au/national-team/australian-team-fai-world-drone-racing-championship-2026">FAI World Championships 2026</a><a href="/ratings">Pilot Ratings</a><a href="/rules">Rules &amp; Regulations</a><a href="/pages/code-of-ethics-conduct">Code of Ethics &amp; Conduct</a>
+            </div>
+        </details>
+        
+        
+        
+        <a href="/pilots">Pilots</a>
+        
+        
+        
+        <a href="/gallery">Gallery</a>
+        
+        
+        
+        <a href="/about">About</a>
+        
+        
+        
+        <div class="cta">
+            <a href="/login" class="nx-btn ghost">Log in</a>
+            <a href="/register" class="nx-btn primary">Join AUFPV</a>
+        </div>
+        
+    </nav>
+    <style>
+     
+    @media (max-width: 960px) { body.nx .nx-actions .nx-links { display: none; } }
+    </style>
+
+    
+
+
+    
+
+    <main>
+		
+        
+        
+<section class="nx-page hair">
+    <div class="nx-wrap">
+        <div class="row">
+            <div>
+                <div class="nx-eyebrow" data-reveal="fade">Find a club</div>
+                <h1 data-reveal style="--i:1">Race where you live.</h1>
+                <p class="nx-lede" data-reveal style="--i:2">Affiliated clubs across Australia and beyond. Find your local club to start racing, submit qualifying times and join the community.</p>
+            </div>
+            
+            <nav class="cl-jump" aria-label="Jump to state" data-reveal style="--i:3">
+                <a href="#state-ACT" class="nx-chip">ACT</a><a href="#state-National" class="nx-chip">National</a><a href="#state-NSW" class="nx-chip">NSW</a><a href="#state-QLD" class="nx-chip">QLD</a><a href="#state-SA" class="nx-chip">SA</a><a href="#state-VIC" class="nx-chip">VIC</a><a href="#state-WA" class="nx-chip">WA</a>
+            </nav>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+
+<section class="nx-section hair cl-state" id="state-ACT">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">ACT</h2>
+            </div>
+            <span class="cl-count">2 clubs</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/images/clubs/adfdroneracing.jpg" alt="ADF Drone Racing logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>ACT</span>
+                    </div>
+                    <h3>ADF Drone Racing</h3>
+                    
+                    <p class="cl-desc">ADF Drone Racing club</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+            <article class="nx-card cl-card" data-reveal style="--i:1">
+                <div class="cl-plate">
+                    <img src="/static/uploads/cmrc/1779142594536618628_CMRC_Logo_WHITE.png" alt="Canberra Multirotor Racing Club logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Canberra, ACT</span>
+                    </div>
+                    <h3>Canberra Multirotor Racing Club</h3>
+                    <p class="cl-addr">Weston Valley Archery Club, Dixon Drive &amp; Streeton Drive, Weston Creek ACT 2611</p>
+                    <p class="cl-desc">Canberra&#39;s first dedicated FPV Multirotor club. We are a part of the Model Aeronautical Association of Australia and the ACT Aeromodellers Association.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://cmrc.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="http://www.cmrc.asn.au/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:info@cmrc.asn.au" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/CBRMRC/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-National">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">National</h2>
+            </div>
+            <span class="cl-count">1 club</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <span class="cl-mono">A</span>
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>National</span>
+                    </div>
+                    <h3>Australian FPV Association</h3>
+                    
+                    
+                    <div class="foot">
+                        <div class="cl-links">
+                            
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-NSW">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">NSW</h2>
+            </div>
+            <span class="cl-count">2 clubs</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/images/clubs/outerheaven.png" alt="Outer Heaven Drone Racing logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Sydney, NSW</span>
+                    </div>
+                    <h3>Outer Heaven Drone Racing</h3>
+                    <p class="cl-addr">Peter Van Hasselt Reserve, Palmyra Ave, Shalvey NSW 2770</p>
+                    <p class="cl-desc">FPV club in Sydney&#39;s western suburbs with racing meets on regularly.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://outerheaven.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="https://outerheavendroneracing.com.au/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:info@outerheavenfpv.com.au" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/outerheavenfpv/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+            <article class="nx-card cl-card" data-reveal style="--i:1">
+                <div class="cl-plate">
+                    <img src="/static/uploads/pdr/1781586653435499146_PDR.png" alt="Panorama Drone Racing logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Bathurst, NSW</span>
+                    </div>
+                    <h3>Panorama Drone Racing</h3>
+                    <p class="cl-addr">Bathurst, NSW, Australia</p>
+                    <p class="cl-desc">Panorama Drone Racing is a Chapter of MultiGP Drone Racing Community. We run Drone Racing events in Bathurst. The heart of FPV on the Central Coast. This group is our local racing/freestyle events or for anyone looking to get into the FPV quad hobby. Spectators are always welcome, please join us and ask all your questions.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://pdr.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            
+                            <a href="mailto:panoramadroneracing@gmail.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/PanoramaDroneRacing/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-QLD">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">QLD</h2>
+            </div>
+            <span class="cl-count">2 clubs</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/uploads/rebels/1775351518281175018_black-red.svg" alt="FPV Rebels logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>QLD</span>
+                    </div>
+                    <h3>FPV Rebels</h3>
+                    <p class="cl-addr">411 Roghan Rd Fitzgibbon QLD 4018</p>
+                    <p class="cl-desc">FPV Rebels are very excited and proud to be able to offer you the opportunity to fly your multi-rotors safely and legally! Join us at monthly meets where you can be part of a friendly and supportive atmosphere.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://fpvrebels.com" class="nx-btn primary sm">Club site</a>
+                            <a href="https://www.fpvrebels.com/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:info@fpvrebels.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/fpvrebels/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            <a href="https://www.instagram.com/fpvrebels/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                            <a href="https://www.youtube.com/@fpvrebels" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+            <article class="nx-card cl-card" data-reveal style="--i:1">
+                <div class="cl-plate">
+                    <img src="/static/images/clubs/townsville.png" alt="Townsville FPVR logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Townsville, QLD</span>
+                    </div>
+                    <h3>Townsville FPVR</h3>
+                    <p class="cl-addr">Oonoonba Community Centre, 2 Shannon Street, Oonoonba QLD 4811</p>
+                    <p class="cl-desc">Townsville and surrounds First Person View (FPV) Drone Racing. Townsville FPVR is striving to provide a competitive racing and freestyle platform for FPV drone enthusiasts.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://fpvr.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="https://www.facebook.com/groups/TownsvilleFPVR/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:townsville.fpvr@gmail.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/TownsvilleFPVR/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-SA">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">SA</h2>
+            </div>
+            <span class="cl-count">1 club</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/uploads/adelaide/1782729040352430184_adelaide-fpv.png" alt="Adelaide FPV Racing logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Adelaide, SA</span>
+                    </div>
+                    <h3>Adelaide FPV Racing</h3>
+                    <p class="cl-addr">Woodville Hockey Club Park Ave &amp; Northgate St, Adelaide SA 5012</p>
+                    <p class="cl-desc">Connect with the community of Adelaide FPV Drone racing pilots. Race challenging tracks in safety out at a club day at our Woodville location. Explore the rapidly evolving hobby of First Person View model aircraft flight.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://adelaidefpvracing.com.au" class="nx-btn primary sm">Club site</a>
+                            <a href="http://adelaidefpvracing.com.au/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:secretary@adelaidefpvracing.com.au" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/AFPVR/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            <a href="https://www.instagram.com/adelaide_fpv_racing?utm_source=ig_web_button_share_sheet&amp;srtk=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-VIC">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">VIC</h2>
+            </div>
+            <span class="cl-count">2 clubs</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/uploads/eastside/1782013182023832386_Eastside_FPV.jpg" alt="Eastside FPV logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Melbourne, VIC</span>
+                    </div>
+                    <h3>Eastside FPV</h3>
+                    <p class="cl-addr">Llewellyn Park, Llewellyn Park Drive, Wantirna South VIC 3152</p>
+                    <p class="cl-desc">We are a FPV drone club in Melbourne&#39;s eastern suburbs. Our aim is to have fun and help grow the sport of multi-rotor / drone racing throughout Melbourne and the rest of Australia. We are not only a racing club, we love to encourage all other forms of FPV flying. If you are a beginner we encourage you to come down to one of our meets and have a look around.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://eastside.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="http://www.eastsidefpv.com.au/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:eastsidefpv@gmail.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/eastsidefpv/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            <a href="https://www.instagram.com/eastsidefpv/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                            <a href="https://www.youtube.com/channel/UCQb5CfCxVozq5_NYe8F1uuQ" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+            <article class="nx-card cl-card" data-reveal style="--i:1">
+                <div class="cl-plate">
+                    <img src="/static/uploads/clubs/1780401911305799678_MMRC.png" alt="MMRC logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Melbourne, VIC</span>
+                    </div>
+                    <h3>MMRC</h3>
+                    <p class="cl-addr">Greensborough Model Aircraft Club, Yan Yean Rd, Yarrambat VIC 3091</p>
+                    <p class="cl-desc">FPV club in Melbourne&#39;s north east. MMRC holds race meetings every 3rd Saturday of the month with casual flying/practice days every other Saturday.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://mmrc.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="http://www.vicfpv.com/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:secretary@vicfpv.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/MMRCAU/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            
+                            <a href="https://www.youtube.com/channel/UCrnNhCUOMy0pqypKGnTMFKw" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+<section class="nx-section hair cl-state" id="state-WA">
+    <div class="nx-wrap">
+        <div class="nx-head" data-scrub="rise">
+            <div>
+                <div class="nx-eyebrow">Australia</div>
+                <h2 class="nx-title">WA</h2>
+            </div>
+            <span class="cl-count">2 clubs</span>
+        </div>
+        <div class="nx-grid two cl-grid">
+            
+            <article class="nx-card cl-card" data-reveal style="--i:0">
+                <div class="cl-plate">
+                    <img src="/static/images/clubs/rotorcross.png" alt="Rotorcross logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Perth, WA</span>
+                    </div>
+                    <h3>Rotorcross</h3>
+                    <p class="cl-addr">35 Weston Road, Pickering Brook WA 6076</p>
+                    <p class="cl-desc">Established in 2014 by active members of the WA FPV and Multirotor communities, our home grounds in the Perth hills allows members to enjoy a safe, welcoming and approved space to fly till your hearts content. With features like no other club in Australia, such as permanent pilot pit, charging and spotter stations. We run midweek training sessions, monthly race meets, and casual/rookie days.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://rox.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="http://www.rotorcross.club/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:rotorcrossaustralia@gmail.com" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/rotorcrossAU/" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            <a href="https://www.instagram.com/rotorcross_wa" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                            <a href="https://www.youtube.com/channel/UC4m627v3tz639dskiwE1Nqw" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+            <article class="nx-card cl-card" data-reveal style="--i:1">
+                <div class="cl-plate">
+                    <img src="/static/images/clubs/westcoast.png" alt="West Coast Multirotor Club logo" loading="lazy">
+                </div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="cl-loc"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Kwinana, WA</span>
+                    </div>
+                    <h3>West Coast Multirotor Club</h3>
+                    <p class="cl-addr">Thomas Kelly Pavilion, Kwinana WA</p>
+                    <p class="cl-desc">Perth&#39;s FPV drone racing club, est. 2016. We run fortnightly race events throughout the year plus casual, beginner-friendly race and freestyle days. Our home base at Thomas Kelly Pavilion, Kwinana has shaded pits, power for charging LiPos, toilets, a canteen, a licensed sports bar and TV screens and ground stations to follow the action. Our mission is to promote the sport of FPV drone racing, foster innovation in drone technology and build a supportive community of pilots. Home of the 2026 FlyIQ WA State Drone Racing Championships.</p>
+                    <div class="foot">
+                        <div class="cl-links">
+                            <a href="https://wcmrc.aufpv.org.au" class="nx-btn primary sm">Club site</a>
+                            <a href="https://westcoastmultirotors.com.au/" class="nx-btn ghost sm" target="_blank" rel="noopener">Website</a>
+                            <a href="mailto:president@westcoastmultirotors.com.au" class="nx-btn ghost sm">Email</a>
+                        </div>
+                        
+                        <div class="cl-social">
+                            <a href="https://www.facebook.com/groups/westcoastmultirotorclub" target="_blank" rel="noopener" title="Facebook" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                            <a href="https://www.instagram.com/westcoastmultirotor/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                            <a href="https://www.youtube.com/@westcoastmultirotorsclub" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+                        </div>
+                        
+                    </div>
+                </div>
+            </article>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+<section class="nx-cta hair">
+    <div class="nx-wrap" data-scrub="zoom">
+        <div class="nx-eyebrow">Run a club?</div>
+        <h2>Bring your club onto the platform.</h2>
+        <p class="nx-lede">Affiliated clubs get their own site, membership, event registration, live timing and OBS overlays — all under the national body.</p>
+        <div class="actions"><a href="/contact" class="nx-btn primary lg">Talk to AUFPV</a><a href="/about" class="nx-btn ghost lg">About the association</a></div>
+    </div>
+</section>
+
+<style>
+ 
+body.nx .cl-jump { display: flex; flex-wrap: wrap; gap: 8px; max-width: 520px; justify-content: flex-end; }
+body.nx .cl-jump .nx-chip { text-decoration: none; border: 1px solid transparent; transition: border-color .2s, color .2s; }
+body.nx .cl-jump .nx-chip:hover { border-color: rgba(255,255,255,.25); color: #fff; }
+body.nx .cl-state { scroll-margin-top: 72px; }
+body.nx .cl-count { font-size: .9rem; color: var(--color-text-muted); font-weight: 500; }
+body.nx .cl-grid { gap: 20px; }
+body.nx .cl-card { flex-direction: row; align-items: stretch; }
+body.nx .cl-plate { flex: 0 0 200px; display: flex; align-items: center; justify-content: center; padding: 28px; background: #f5f5f7; border-right: 1px solid var(--nx-hair); }
+body.nx .cl-plate img { max-width: 100%; max-height: 120px; width: auto; height: auto; object-fit: contain; display: block; }
+body.nx .cl-mono { font-family: var(--font-heading); font-size: 3rem; font-weight: 700; color: #000; letter-spacing: -.05em; }
+body.nx .cl-card .body { padding: 26px 28px 28px; gap: 10px; }
+body.nx .cl-card h3 { font-size: 1.45rem; letter-spacing: -.03em; }
+body.nx .cl-loc { display: inline-flex; align-items: center; gap: 5px; color: var(--nx-accent); font-weight: 600; letter-spacing: .02em; }
+body.nx .cl-addr { font-size: .85rem !important; color: var(--color-text-muted) !important; -webkit-line-clamp: 2 !important; }
+body.nx .cl-desc { -webkit-line-clamp: 3; }
+body.nx .cl-card .foot { align-items: center; flex-wrap: wrap; gap: 10px; }
+body.nx .cl-links { display: flex; gap: 8px; flex-wrap: wrap; }
+body.nx .cl-social { display: flex; gap: 6px; }
+body.nx .cl-social a { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--color-text-secondary); background: rgba(255,255,255,.06); border: 1px solid var(--nx-hair); transition: background .2s, color .2s, transform .3s var(--nx-ease); }
+body.nx .cl-social a:hover { color: #fff; background: rgba(255,255,255,.12); transform: translateY(-2px); }
+@media (max-width: 640px) {
+    body.nx .cl-card { flex-direction: column; }
+    body.nx .cl-plate { flex-basis: auto; padding: 24px; border-right: 0; border-bottom: 1px solid var(--nx-hair); }
+    body.nx .cl-plate img { max-height: 90px; }
+    body.nx .cl-jump { justify-content: flex-start; max-width: none; }
+}
+</style>
+
+        
+    </main>
+
+    
+    <footer class="nx-footer">
+        <div class="nx-wrap">
+            <div class="cols">
+                <div class="brand">
+                    <img src="/static/images/aufpv/AUFPV_logo.png" alt="AUFPV">
+                    <p>The national body for FPV drone racing in Australia. Clubs, the qualifying series, and the Australian Drone Racing Nationals.</p>
+                    <ul style="flex-direction:row;gap:16px">
+                        <li><a href="https://www.facebook.com/AustralianFPV" target="_blank" rel="noopener">Facebook</a></li>
+                        <li><a href="https://www.instagram.com/aufpv_au" target="_blank" rel="noopener">Instagram</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>Racing</h5>
+                    <ul>
+                        <li><a href="/nationals">Drone Nationals</a></li>
+                        <li><a href="/nationals/qualifying">Qualifying series</a></li>
+                        <li><a href="/events">Events</a></li>
+                        <li><a href="/dronedash/embed">Live timing</a></li>
+                        <li><a href="/ratings">Pilot ratings</a></li>
+                        <li><a href="/nationals/report">Nationals report</a></li>
+                        <li><a href="/nationals/past">Past Nationals</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>Community</h5>
+                    <ul>
+                        <li><a href="/clubs">Clubs</a></li>
+                        <li><a href="/pilots">Pilots</a></li>
+                        <li><a href="/news">News</a></li>
+                        <li><a href="/gallery">Gallery</a></li>
+                        <li><a href="/rules">Rules &amp; regulations</a></li>
+                        
+                    </ul>
+                </div>
+                <div>
+                    <h5>AUFPV</h5>
+                    <ul>
+                        <li><a href="/about">About</a></li>
+                        <li><a href="/join">Membership</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="mailto:info@aufpv.org.au">info@aufpv.org.au</a></li>
+                    </ul>
+                    
+                    <h5 style="margin-top:1.5rem">Partners</h5>
+                    <ul>
+                        
+                        <li><a href="https://www.maaa.asn.au/" target="_blank" rel="noopener">MAAA</a></li>
+                        
+                        <li><a href="https://fpvtrackside.com/" target="_blank" rel="noopener">FPV Trackside</a></li>
+                        
+                        <li><a href="https://www.multigp.com/" target="_blank" rel="noopener">MultiGP</a></li>
+                        
+                    </ul>
+                    
+                </div>
+            </div>
+            <div class="bottom">
+                <span>&copy; 2026 Australian FPV Association Inc.</span>
+                <span>Australia · v2026.10.26.1669</span>
+            </div>
+        </div>
+    </footer>
+
+    
+    <nav class="mobile-bottom-nav" id="mobile-nav-placeholder" aria-label="Mobile navigation">
+        <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+        <a href="/events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Events</span></a>
+        <a href="/dronedash/embed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.93 19.07A10 10 0 0 1 2 12C2 6.48 6.48 2 12 2s10 4.48 10 10a10 10 0 0 1-2.93 7.07"/><path d="M7.76 16.24A6 6 0 0 1 6 12c0-3.31 2.69-6 6-6s6 2.69 6 6a6 6 0 0 1-1.76 4.24"/><circle cx="12" cy="12" r="2"/></svg><span>Live</span></a>
+        <a href="/pilots/edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><circle cx="12" cy="12" r="2"/><line x1="6.8" y1="6.8" x2="10.6" y2="10.6"/><line x1="17.2" y1="6.8" x2="13.4" y2="10.6"/><line x1="6.8" y1="17.2" x2="10.6" y2="13.4"/><line x1="17.2" y1="17.2" x2="13.4" y2="13.4"/></svg><span>Pilot</span></a>
+        <a href="/account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account</span></a>
+    </nav>
+
+    
+    
+    
+    
+
+    <script src="/static/js/nx.js?v=2026.10.26.1669" defer></script>
+    <script src="/static/js/main.js?v=2026.10.26.1669" defer></script>
+    <script src="/static/js/ratings-ajax.js?v=2026.10.26.1669" defer></script>
+    <script src="/static/js/mobile-nav.js?v=2026.10.26.1669" defer></script>
+    <script src="/static/js/dronedash-watch.js?v=2026.10.26.1669" defer></script>
+    <script type="application/json" id="cmdkData">[{"l":"Home","g":"Site","u":"/"},{"l":"Events","g":"Site","u":"/events"},{"l":"News","g":"Site","u":"/news"},{"l":"Live","g":"Site","u":"/dronedash/embed"},{"l":"Brisbane 2026","g":"Site · Australian Drone Nationals","u":"/nationals"},{"l":"Event Schedule","g":"Site · Australian Drone Nationals","u":"/nationals/schedule"},{"l":"Pilot Handbook","g":"Site · Australian Drone Nationals","u":"/nationals/handbook"},{"l":"Rulebook","g":"Site · Australian Drone Nationals","u":"/nationals/rulebook"},{"l":"Volunteer Handbook","g":"Site · Australian Drone Nationals","u":"/volunteers/handbook"},{"l":"Qualifying Series 2026","g":"Site · Australian Drone Nationals","u":"/nationals/qualifying"},{"l":"Submit DVR","g":"Site · Australian Drone Nationals","u":"/nationals/qualifying/submit"},{"l":"Clubs","g":"Site","u":"/clubs"},{"l":"Events","g":"Site · Racing","u":"/events"},{"l":"National Calendar","g":"Site · Racing","u":"/calendar"},{"l":"Past Nationals","g":"Site · Racing","u":"/nationals/past"},{"l":"FAI World Championships 2026","g":"Site · Racing","u":"https://aufpv.org.au/national-team/australian-team-fai-world-drone-racing-championship-2026"},{"l":"Pilot Ratings","g":"Site · Racing","u":"/ratings"},{"l":"Rules \u0026 Regulations","g":"Site · Racing","u":"/rules"},{"l":"Code of Ethics \u0026 Conduct","g":"Site · Racing","u":"/pages/code-of-ethics-conduct"},{"l":"Pilots","g":"Site","u":"/pilots"},{"l":"Gallery","g":"Site","u":"/gallery"},{"l":"About","g":"Site","u":"/about"}]</script>
+    <script src="/static/js/command-palette.js?v=2026.10.26.1669" defer></script>
+    <script>
+    (function(){
+        var btn=document.getElementById('adminMenuToggle'); if(!btn) return;
+        btn.addEventListener('click',function(){
+            var on=document.documentElement.classList.toggle('admin-menu-collapsed');
+            try{localStorage.setItem('adminMenuCollapsed',on?'1':'0');}catch(e){}
+            btn.setAttribute('aria-pressed',on?'true':'false');
+        });
+    })();
+    </script>
+    <script>if(window.matchMedia('(display-mode: standalone)').matches||navigator.standalone){document.cookie='pwa=1;path=/;max-age=31536000;SameSite=Lax';}else{document.cookie='pwa=;path=/;max-age=0';}</script>
+    
+    <div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;background:#0b0b0d;border-top:1px solid rgba(255,255,255,.12);padding:12px 16px;font-family:system-ui,sans-serif;">
+        <div style="display:flex;align-items:center;justify-content:space-between;max-width:600px;margin:0 auto;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <img src="/static/images/aufpv/favicon-192.png" alt="" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+                <div style="min-width:0;">
+                    <div style="color:#fff;font-weight:600;font-size:0.9rem;">Install AUFPV</div>
+                    <div id="pwa-banner-subtitle" style="color:#999;font-size:0.75rem;">Add to home screen</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button id="pwa-install-btn" style="background:#b6e925;color:#0a1200;border:none;padding:8px 20px;border-radius:999px;font-weight:600;font-size:0.85rem;cursor:pointer;">Install</button>
+                <button id="pwa-dismiss-btn" style="background:transparent;color:#999;border:1px solid #333;padding:8px 12px;border-radius:999px;font-size:0.85rem;cursor:pointer;">Not now</button>
+            </div>
+        </div>
+    </div>
+    <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(function() {}); }
+    (function() {
+        function init() {
+            var banner = document.getElementById('pwa-install-banner');
+            if (!banner) return;
+            if (window.matchMedia('(display-mode: standalone)').matches) return;
+            if (navigator.standalone) return;
+            if (localStorage.getItem('pwa-dismissed')) return;
+            var installBtn = document.getElementById('pwa-install-btn');
+            var dismissBtn = document.getElementById('pwa-dismiss-btn');
+            var subtitle = document.getElementById('pwa-banner-subtitle');
+            var deferredPrompt = window.__pwaPrompt;
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            function position() { var nav = document.querySelector('.mobile-bottom-nav'); banner.style.bottom = (nav && nav.offsetHeight ? nav.offsetHeight : 0) + 'px'; }
+            function show() { position(); banner.style.display = 'block'; }
+            if (deferredPrompt) { show(); }
+            else if (isIOS) { if (installBtn) installBtn.style.display = 'none'; if (subtitle) subtitle.textContent = 'Tap Share, then "Add to Home Screen"'; show(); }
+            window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredPrompt = e; if (installBtn) installBtn.style.display = ''; if (subtitle) subtitle.textContent = 'Add to home screen'; show(); });
+            if (installBtn) installBtn.addEventListener('click', function() { if (!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt.userChoice.then(function() { deferredPrompt = null; }); banner.style.display = 'none'; });
+            if (dismissBtn) dismissBtn.addEventListener('click', function() { banner.style.display = 'none'; localStorage.setItem('pwa-dismissed', Date.now()); });
+            window.addEventListener('appinstalled', function() { banner.style.display = 'none'; deferredPrompt = null; });
+            window.addEventListener('resize', position);
+        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+    })();
+    </script>
+</body>
+</html>

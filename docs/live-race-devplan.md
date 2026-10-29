@@ -1,180 +1,142 @@
 # Live race data — dev plan
 
-Status: draft, researched 2026-10-29. Nothing implemented yet.
+Status: v1 is built (Live tab, HTML snapshot plus SSE stream). It's checked against captured pages and
+simulated streams, but not yet against a real race. The first real test is CMRC Micro Series Meet 9 on
+2026-11-06. Last updated 2026-10-29.
 
 ## 1. What the live source actually is
-
-The assumption going in was "AUFPV websockets stream, built on Drone Dashboard". Research says otherwise in two
-important ways.
 
 ### Whalefreezer/drone-dashboard (GitHub)
 
 - Repo: https://github.com/Whalefreezer/drone-dashboard (last commit b30d3b3, 2026-06-28).
 - Go backend embedding PocketBase, with a Deno/React/Vite frontend. It ingests from a venue's local FPVTrackside
-  HTTP API on a schedule, then stores the data in PocketBase collections.
-- The **websocket** in that project is the *pits ↔ cloud control link* (`backend/control/protocol.go`: `hello`,
-  `fetch`, `response`, `ping`/`pong` envelopes). The cloud sends HTTP `fetch` requests down the socket and the venue
-  laptop proxies them to FPVTrackside. Viewers never touch this socket; they get updates via PocketBase realtime.
+  HTTP API.
+- Its **websocket** is the *pits ↔ cloud control link* (`backend/control/protocol.go`). The cloud sends HTTP `fetch`
+  requests down the socket and the venue laptop proxies them to FPVTrackside. Viewers never see this socket.
 
-### What cmrc.asn.au/dronedash actually runs
+### AUFPV dronedash, a multi-club platform
 
-`https://cmrc.asn.au/dronedash/embed` is a wrapper page holding an iframe of `/dronedash?embed=1`. That page is
-**not** the Whalefreezer React app. It's an AUFPV-hosted, server-rendered port with its own routes, integer IDs and
-JS (`/static/js/dronedash-*.js`). It shares the theme key `aufpv_theme` with the rest of the CMRC site. I can't tell
-from outside whether its ingest uses Whalefreezer's pits link.
+AUFPV (aufpv.org.au) hosts club websites, and each one has a **dronedash** live-timing page. This is AUFPV's own
+server-rendered port, not the Whalefreezer React app. Every site runs the same code against **one shared
+database**:
 
-The live transport here is **Server-Sent Events, not websockets**:
+- Club sites come from the "Club site" links on `https://aufpv.org.au/clubs`. Examples:
+  - `cmrc.aufpv.org.au` (also served as `cmrc.asn.au`)
+  - `fpvrebels.com`
+  - `adelaidefpvracing.com.au`
+  - `fpvr.aufpv.org.au`
+  - `outerheaven.`, `pdr.`, `eastside.`, `mmrc.`, `rox.` and `wcmrc.aufpv.org.au`
+  - `aufpv.org.au` itself for the nationals
+- Event, race and pilot IDs are **AUFPV-wide integers**, e.g. CMRC event 11, Rebels 698, Nationals 699. Each site
+  lists only its own club's events.
+- Club websites embed it as `/dronedash/embed`, an iframe of `/dronedash?embed=1`.
+
+### Endpoints (same on every club host)
 
 | Endpoint | Type | Notes |
 |---|---|---|
-| `GET /dronedash/event/{eventId}/stream` | `text/event-stream` | Public, no auth, `Access-Control-Allow-Origin: *`. Confirmed live: `: connected event=11` then `event: ping`. |
-| `GET /dronedash?event={id}&embed=1` | HTML | The full snapshot: current, last and previous race cards, leaderboard and upcoming list. ~220 KB. |
-| `GET /dronedash/races?event={id}&embed=1` | HTML | Every race in the event. ~1.8 MB, too heavy to poll. |
-| `GET /dronedash/join.json?event={id}` | JSON | Channel list with colours, classes, heat-join state. Useful for channel colours. |
-| `GET /dronedash/race/{raceId}/commentary.json` | JSON | `{"race_id":…,"status":"none"}` when unused. |
-| `GET /dronedash/pilot/{pilotId}?event={id}` | HTML | Pilot page. |
+| `GET /dronedash/event/{eventId}/stream` | `text/event-stream` | Public, no auth, CORS `*`. Sends `: connected event=N` then events. |
+| `GET /dronedash?embed=1` | HTML | Snapshot of the club's **current** event: current, last and previous race cards, next races, leaderboard and event menu. About 220 KB. |
+| `GET /dronedash?event={id}&embed=1` | HTML | The same, for a specific event. |
+| `GET /dronedash/races?event={id}&embed=1` | HTML | Every race. About 1.8 MB; not polled. |
+| `GET /dronedash/join.json?event={id}` | JSON | Channels with colours, classes and heat-join state. |
+| `GET /dronedash/race/{raceId}/commentary.json` | JSON | Commentary status. |
 
-SSE events (from `dronedash-home.js`):
+### SSE events
+
+These shapes come from the site's `dronedash-home.js`; they haven't been seen on the wire yet.
 
 | `event:` | `data:` | Meaning |
 |---|---|---|
-| `ping` | `{}` | Keepalive about every 20 s. The site treats 30 s of silence as a dead stream. |
-| `lap` | `{"pilot_id":int,"lap_number":int,"length_seconds":float}` | A timed lap. `lap_number` 0 is the holeshot. **Can be re-sent after a reconnect**, so apply it idempotently. |
-| `sector` | (ignored by the site) | A split-gate crossing. The site just re-fetches the snapshot. |
-| `race_state` | `{"state":"created"\|"running"\|"ended"\|"current", …}` | A race lifecycle edge. The site re-fetches the snapshot. Other fields are probably present but unconfirmed. |
+| `ping` | `{}` | Keepalive about every 20 s. |
+| `lap` | `{"pilot_id":int,"lap_number":int,"length_seconds":float}` | A timed lap; lap 0 is the holeshot. Can be re-sent after a reconnect. |
+| `race_state` | `{"state":"created"\|"running"\|"ended"\|"current", …}` | Race lifecycle edge. Re-fetch the snapshot. |
+| `sector` | ? | Split-gate crossing. Re-fetch the snapshot. |
 
-The stream carries only **deltas keyed by AUFPV-internal integer IDs**: pilot 113, race 3593, event 11. Names,
-channels, race order and start time come only from the HTML snapshot. The site itself doesn't trust the stream
-alone. It soft-refreshes the snapshot on every `race_state`, every 5 s while a race runs, every 10 s between races,
-on reconnect, and when the tab returns to the foreground.
+The stream only carries deltas. Names, channels, race order and start times come only from the HTML snapshot. The
+site itself re-fetches the snapshot on every `race_state`, every 5 s while racing and every 10 s otherwise, on
+reconnect, and when the tab comes back to the foreground.
 
-### Snapshot markup the client depends on
+### Snapshot markup hooks
 
-Taken from the live page. These hooks are stable enough that the site's own JS relies on them:
+These are the hooks the site's own JS relies on, and the ones `AufpvParser` reads:
 
-- Root: `[data-dash-root]` with `data-event-id` and `data-server-now` (ms, used for clock skew).
-- Race card: `.race-box` (current race adds `.current-race`) with `data-race-id`, `data-race-state`
-  (`pending`/`running`/`ended`), `data-start-ms` (server-clock epoch ms, `0` before start), `data-heat-type`
-  (`Race`/`Time Trial`), `data-target-laps`, `data-is-tt`, `data-consec-window`. Header text reads
-  "Round 2 — Time Trial 1".
-- Pilot row: `.laps-view-desktop .gt-row[data-pilot-id]` containing:
-  - `[data-col="name"]`, with the name in `data-fav-name`
-  - `[data-col="chan"]`, with the channel text plus `.channel-square` background colour
-  - `[data-col="hs"] [data-secs]`
-  - `[data-col="laps"] .lap[data-lap-cell][data-secs]`
-  - `[data-total]`
+- `[data-dash-root]` with `data-event-id` and `data-server-now`.
+- `.races-container > .race-box[data-race-id]` with `data-race-state`, `data-start-ms` (server clock),
+  `data-heat-type`, `data-target-laps`, `data-is-tt` and `data-consec-window`.
+  - Heading: `.race-header h3` ("Current Race", "Last Race", "Previous Race").
+  - Title: `.race-number`, e.g. "Round 2 — Time Trial 1".
+  - Optional `.race-bracket-info[title]` of the form "FPVTrackside · Round 31 · Race 1".
+- Pilot rows: `.laps-view-desktop .gt-row[data-pilot-id]`.
+  - `[data-col=name][data-fav-name]`
+  - `[data-col=chan]` (channel text plus `.channel-square` colour)
+  - `[data-col=hs] [data-secs]`
+  - `.lap[data-lap-cell][data-secs]`
   - `[data-pb][data-value]`
-- Event list: `.dd-event-item` links (`?event={id}`) with a `.dd-event-name` child.
-- Leaderboard: `[data-leaderboard] .gt-row[data-pilot-id]`.
+  - `.dd-qual-chip`
+- Next races: the `.race-box` titled "Next Races". It has a `<strong>` title per heat and a `.pilot-meta-chip`
+  per pilot.
+- Events: `.dd-event-menu a.dd-event-item` (`?event=N`), `.dd-event-name`, and an optional `.dd-event-live`.
 
-### Does it line up with our FPVTrackside data?
+### How it lines up with FPVTrackside
 
-Yes, by name. AUFPV event names match FPVTrackside exactly, e.g. "CMRC 2026 Racing Series Meet 6" is AUFPV `11` and
-FPVTrackside `c21e0861-…`, and "CMRC 2026 Racing Series Meet 9" is `b1f7691c-…`. Pilot callsigns, channel names
-(L6, R1, F2…) and colours match FPVTrackside's too. **IDs never match**: AUFPV uses ints, FPVTrackside uses GUIDs. Two
-AUFPV events share the name "…Meet 8 (MultiGP Global Qualifier)", so matching needs name plus date.
+- **Clubs** match by name, e.g. "Canberra Multirotor Racing Club". Some FPVTrackside clubs use the short name,
+  which equals the AUFPV subdomain ("CMRC" → `cmrc`).
+- **Events** match by name for CMRC, e.g. "CMRC 2026 Racing Series Meet 6" is AUFPV 11 and FPVTrackside
+  `c21e0861-…`. Other clubs don't always match: Rebels uses names like "Sept 2026" and "New Event (2 Jul)".
+  So v1 links at the **club** level and lets the club's dashboard choose the current event. Event-level linking
+  stays best-effort for later.
+- **Pilots and channels** match by callsign and channel name. IDs never match.
 
-Nothing was racing on 2026-10-29 (Thursday), so no `lap` or `race_state` frames were captured. The payload shapes
-above come from the site's JS, not from the wire. The next CMRC meeting in FPVTrackside is **Micro Series Meet 9 on
-2026-11-06**. Capture a real stream then (see Phase 0).
+## 2. Risks
 
-## 2. Constraints and risks
+1. **HTML scraping.** There's no JSON snapshot, so a markup change breaks parsing. The parser only reads the
+   `data-*` hooks above, and the tests run it against real captured pages. Asking AUFPV for a JSON endpoint is
+   still the best fix.
+2. **Courtesy and load.** Use one stream per viewer and the same refresh cadence as the site, only while the Live
+   tab is on screen. Getting AUFPV's OK before a public release is still to do.
+3. **Clock skew.** `skew = deviceNow - data-server-now` at fetch time, like the site.
+4. **State flaps.** A re-run heat can flap running → ended → running. The timer holds for 6 s, like the site.
+5. **Unverified wire format.** The lap and race_state payloads haven't been captured live yet.
 
-1. **No JSON snapshot.** We'd be scraping HTML for state. A markup change breaks us silently. Mitigations: scrape
-   only the `data-*` hooks the site's own JS depends on, version-check with a parse-health metric, and fall back to
-   FPVTrackside data on failure. The best fix is to ask AUFPV for a JSON snapshot endpoint, e.g.
-   `/dronedash/event/{id}/state.json`. This is the single highest-value ask.
-2. **Undocumented, third-party, CMRC-scoped.** The stream lives on `cmrc.asn.au`. Other clubs may run AUFPV on other
-   hosts or not at all. Treat the live source as an optional per-club integration, not a global feature.
-3. **Courtesy and load.** Get AUFPV/CMRC's OK before shipping. Poll the snapshot only while a Live screen is
-   visible, never in the background. Respect the site's own cadence: one stream per viewer and snapshot refreshes no
-   faster than 5 s.
-4. **Clock skew.** `data-start-ms` is server time. Compute `skew = deviceNow - data-server-now` once per snapshot,
-   exactly as the site does.
-5. **Flapping state.** A re-run heat can flick `running → ended → running`. Hold the running timer for 6 s like the
-   site's `TIMER_HOLD_MS`.
-
-## 3. Architecture in the app
+## 3. What's built (v1)
 
 ```
 data/live/
-  LiveSource.kt            // per-club config: base URL (https://cmrc.asn.au), enabled flag
-  DronedashClient.kt       // OkHttp: SSE stream + snapshot GET; no new deps (okhttp-sse is optional, see below)
-  DronedashSnapshotParser  // HTML → LiveSnapshot (Jsoup)
-  LiveEventMapper.kt       // AUFPV event ↔ FPVTrackside event (name + date), pilot ↔ pilot (callsign)
-  LiveRaceRepository.kt    // merges snapshot + lap deltas into StateFlow<LiveState>; owns reconnect/watchdog
-ui/screens/live/
-  LiveScreen.kt + LiveViewModel.kt
+  LiveModels.kt     LiveClub/LiveSnapshot/LiveRace/LivePilot/StreamEvent; FPVTrackside club matching
+  AufpvParser.kt    Jsoup: club directory + dronedash snapshot
+  AufpvClient.kt    OkHttp: clubs, snapshot, SSE stream (okhttp-sse); 45 s read timeout = dead-stream watchdog
+  LiveMath.kt       running order, gaps, best-N-consecutive (ported from dronedash-home.js)
+  LiveSession.kt    sync loop: laps applied idempotently, snapshot on edges + 5 s/10 s backstop, reconnect backoff,
+                    recent laps replayed onto a fresh snapshot only for the race they belong to
+data/storage/LiveClubStore.kt   which club the Live tab watches
+ui/screens/live/                Live tab (LiveScreen + LiveViewModel), stops streaming when not visible
+ui/components/LiveTimingLink.kt green "Live timing" link used on Club details and the Home race-day banner
+tools/capture-live.sh           records stream + snapshots during a meeting
 ```
 
-- **Transport:** add `com.squareup.okhttp3:okhttp-sse:4.12.0`, matching our OkHttp version. It parses the
-  `event:`/`data:` frames for us. Give the stream its own `OkHttpClient` with `readTimeout(0)` and no
-  `HttpLoggingInterceptor` body logging, which would buffer the stream forever.
-- **Parsing:** add `org.jsoup:jsoup:1.18.1` for the snapshot, and select only by the `data-*` hooks listed above.
-  Use Gson for the SSE payloads and `join.json`. Gson is already a dependency.
-- **State model:**
-  ```kotlin
-  data class LiveState(
-      val connection: Connection,            // Connecting / Live / Stale / Offline
-      val eventName: String,
-      val current: LiveRace?, val last: LiveRace?, val next: LiveRace?,
-      val skewMs: Long
-  )
-  data class LiveRace(val id: Int, val title: String, val state: RaceState, val startMs: Long,
-                      val heatType: HeatType, val targetLaps: Int, val pilots: List<LivePilot>)
-  data class LivePilot(val id: Int, val name: String, val channel: String, val color: Color,
-                       val laps: Map<Int, Double>)   // key 0 = holeshot → idempotent on re-sent laps
-  ```
-  Positions, gaps, best lap and best-N-consecutive are derived in Kotlin, porting `computeGaps` and `bestConsec`.
-  Unit-test them against the site's rules: most laps first, then earliest finish, compare at the last lap both
-  pilots completed, ignore laps past the target.
-- **Sync loop**, mirroring the site:
-  1. Connect the stream, then fetch the snapshot.
-  2. On a `lap` event, upsert `laps[lap_number]` straight away.
-  3. On a `race_state` event, refetch the snapshot, debounced by 150 ms.
-  4. On a `sector` event, refetch with a 400 ms debounce. This only matters once splits are shown.
-  5. Backstop refetch every 5 s while a race is running and every 10 s otherwise.
-  6. A watchdog reconnects after 30 s with no frames. On an error, reconnect after a 2 s fixed delay, backing off
-     to 30 s after repeated failures.
-  7. Run all of this only while `Lifecycle.State.STARTED`, using `repeatOnLifecycle`, so it stops when the screen
-     is backgrounded.
-- **Linking to existing screens:** `LiveEventMapper` gives us the FPVTrackside event ID, so "View full results"
-  opens our existing `EventDetails` and `RaceDetails` screens. Pilot names map to FPVTrackside pilots by callsign
-  so we can show photos.
+The Live tab has:
+- A club picker. It defaults to the home club when that club is on AUFPV.
+- An event switcher ("Follow current event" or a past one).
+- A race clock card: status, timer, fastest lap and lap progress.
+- Running order, with gaps for races and best-N for time trials.
+- A lap feed of streamed laps, with PB and fastest-lap tags.
+- "Up next" line-ups, and result cards for the last and previous races.
 
-## 4. UI (from the design canvas)
+Tests in `app/src/test`: the parser against real pages from CMRC, Rebels and the Nationals, the race maths, and
+the session on virtual time with a fake stream.
 
-This follows the "Live" board in the design artifact (https://claude.ai/artifact/7MhYi3UgobuT8W3AzPNmot):
+## 4. Next
 
-- **Live entry points:**
-  - A pulsing "LIVE" chip on the Dashboard's home-club card and on `EventCard` when the event is live.
-  - A Live tab or banner on Event details.
-- **Live screen:**
-  - Header with the race title, a running timer (100 ms tick with skew correction) and a connection dot.
-  - Running-order rows: position, channel colour bar, callsign, laps pill row with HS and best lap in cyan, total,
-    and a gap or "Leader" label.
-  - For time trials, show "Best N" and PB instead of gaps.
-  - "Last race" results card and "Next up" line-up below.
-- Animate row reordering with `LazyColumn` plus `Modifier.animateItem()`, and flash a row on each new lap.
-- Show a "Reconnecting…" pill when stale. Never blank the screen; keep showing the last good state.
+| When | What |
+|---|---|
+| 2026-11-06 (Micro Meet 9) | Run `tools/capture-live.sh https://cmrc.aufpv.org.au` for the whole meeting, and use the app alongside it. Note anything that differs from the website. |
+| After the meeting | Add captured frames and snapshots as fixtures; confirm the `lap` and `race_state` payloads; fix markup drift; write a replay test that feeds a real stream log through `LiveSession`. |
+| Later | Leaderboard tab; split-sector chips; favourites and "your pilot is on deck" notifications; link races to FPVTrackside results through the `race-bracket-info` hint; ask AUFPV about a JSON snapshot and permission for third-party clients. |
 
-## 5. Phases
+## 5. Open questions
 
-| # | Deliverable | Done when |
-|---|---|---|
-| 0 | **Capture & confirm** (no app code). Record a full stream plus snapshots during Micro Meet 9 (2026-11-06), using a small script in `tools/`. Contact AUFPV/CMRC for permission and to ask about a JSON snapshot. | We have real `lap`/`race_state`/`sector` frames saved as test fixtures, and an answer from AUFPV. |
-| 1 | **Data layer**: `DronedashClient` (SSE + snapshot), Jsoup parser, `LiveRaceRepository` with the sync loop, and the gap and consecutive maths. | Unit tests pass against the captured fixtures, including a replay test that feeds the recorded stream and snapshots and checks the final state. |
-| 2 | **Event mapping**: AUFPV event list ↔ FPVTrackside events by name+date; per-club `LiveSource` config (CMRC hard-coded first). | Every 2026 CMRC event maps to exactly one AUFPV ID, and the test covers the duplicate-name case. |
-| 3 | **Live screen**: route `live/{fpvEventId}`, ViewModel, rows, timer, connection states, entry points. | A fixture-replay "demo mode" (debug only) drives the screen end to end. |
-| 4 | **Field test** at a real meeting, then fix-ups for markup drift, reconnects on mobile data, and battery use. | The app tracks a full meeting without a manual refresh, and it matches the website lap for lap. |
-| 5 | **Polish / later**: split-sector chips, favourites, optional notification for "your pilot is on deck", and swapping the HTML scrape for a JSON endpoint if AUFPV adds one. | — |
-
-## 6. Open questions
-
-1. Will AUFPV add a JSON snapshot endpoint and officially permit third-party clients? Their answer decides whether
-   Phase 1 scrapes HTML at all.
-2. Is AUFPV running for any club besides CMRC, and on which hosts? That decides whether `LiveSource` needs a club
-   list or remote config.
-3. Is there a way to find the *active* AUFPV event, other than the default `/dronedash` page? The default showed
-   event 11 (Meet 6, June) on a non-race day, so it may just be the last pinned event.
-4. What extra fields does `race_state` carry, such as a race ID? That needs Phase 0 capture.
+1. Will AUFPV add a JSON snapshot and officially allow third-party clients?
+2. What extra fields does `race_state` carry, such as a race ID? This needs a live capture.
+3. Does `.dd-event-live` mark the event that's racing now? The default page might already follow it. This also
+   needs a live capture.

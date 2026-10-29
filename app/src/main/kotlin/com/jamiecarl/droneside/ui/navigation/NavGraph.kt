@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -45,6 +47,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.jamiecarl.droneside.data.model.Event
+import com.jamiecarl.droneside.data.storage.LiveClubStore
+import com.jamiecarl.droneside.ui.screens.live.LiveScreen
 import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.RoundIconButton
 import com.jamiecarl.droneside.ui.screens.clubdetails.ClubDetailsScreen
@@ -71,6 +75,7 @@ private data class TabItem(val route: String, val label: String, val icon: Image
 
 private val tabs = listOf(
     TabItem(Routes.DASHBOARD, "Home", DsIcons.Home),
+    TabItem(Routes.LIVE, "Live", DsIcons.Live),
     TabItem(Routes.EXPLORE, "Explore", DsIcons.Search),
     TabItem(Routes.CLUBS, "Clubs", DsIcons.Users)
 )
@@ -81,6 +86,7 @@ private fun NavBackStackEntry.arg(name: String): String = decodeArg(arguments?.g
 private fun headerFor(entry: NavBackStackEntry?): Pair<String, String> = when (entry?.destination?.route) {
     Routes.DASHBOARD, null ->
         SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(Date()).uppercase() to "DroneSide"
+    Routes.LIVE -> "AUFPV LIVE TIMING" to "Live"
     Routes.EXPLORE -> "" to "Explore"
     Routes.CLUBS -> "" to "Clubs"
     Routes.CLUB_DETAILS -> "" to "Club"
@@ -95,6 +101,12 @@ private fun headerFor(entry: NavBackStackEntry?): Pair<String, String> = when (e
 private fun NavHostController.openEvent(event: Event) =
     navigate(Routes.eventDetails(event.id, event.name, event.club.name ?: "Unknown Club"))
 
+/** Points the Live tab at an AUFPV club site and switches to it. */
+private fun NavHostController.openLive(context: Context, baseUrl: String) {
+    LiveClubStore(context).set(baseUrl)
+    switchTab(Routes.LIVE)
+}
+
 private fun NavHostController.switchTab(route: String) = navigate(route) {
     popUpTo(graph.findStartDestination().id) { saveState = true }
     launchSingleTop = true
@@ -104,11 +116,12 @@ private fun NavHostController.switchTab(route: String) = navigate(route) {
 @Composable
 fun DronesideApp() {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val isTabRoute = currentRoute == null || tabs.any { it.route == currentRoute }
     var refreshKey by remember { mutableIntStateOf(0) }
-    val (context, title) = headerFor(backStackEntry)
+    val (headerContext, title) = headerFor(backStackEntry)
 
     Box(
         modifier = Modifier
@@ -118,10 +131,10 @@ fun DronesideApp() {
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (isTabRoute) {
-                TabHeader(context = context, title = title, onRefresh = { refreshKey++ })
+                TabHeader(context = headerContext, title = title, onRefresh = { refreshKey++ })
             } else {
                 DetailHeader(
-                    context = context,
+                    context = headerContext,
                     title = title,
                     onBack = { navController.popBackStack() },
                     onRefresh = { refreshKey++ }
@@ -138,8 +151,12 @@ fun DronesideApp() {
                         refreshKey = refreshKey,
                         onOpenClub = { navController.navigate(Routes.clubDetails(it)) },
                         onOpenEvent = { navController.openEvent(it) },
-                        onSeeAll = { navController.switchTab(Routes.EXPLORE) }
+                        onSeeAll = { navController.switchTab(Routes.EXPLORE) },
+                        onOpenLive = { navController.openLive(context, it) }
                     )
+                }
+                composable(Routes.LIVE) {
+                    LiveScreen(refreshKey = refreshKey)
                 }
                 composable(Routes.EXPLORE) {
                     ExploreScreen(refreshKey = refreshKey, onOpenEvent = { navController.openEvent(it) })
@@ -151,7 +168,8 @@ fun DronesideApp() {
                     ClubDetailsScreen(
                         clubId = entry.arg("clubId"),
                         refreshKey = refreshKey,
-                        onOpenEvent = { navController.openEvent(it) }
+                        onOpenEvent = { navController.openEvent(it) },
+                        onOpenLive = { navController.openLive(context, it) }
                     )
                 }
                 composable(

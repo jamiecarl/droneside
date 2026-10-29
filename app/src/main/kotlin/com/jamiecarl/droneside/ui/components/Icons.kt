@@ -39,6 +39,12 @@ object DsIcons {
     val ChevronLeft = strokeIcon("chevron-left", "M15 6l-6 6 6 6")
     val ChevronDown = strokeIcon("chevron-down", "M6 9l6 6 6-6")
     val Refresh = strokeIcon("refresh", "M21 12a9 9 0 1 1-3-6.7", "M21 4v5h-5")
+    val Live = strokeIcon(
+        "live",
+        "M13 12a1 1 0 1 1-2 0a1 1 0 1 1 2 0",
+        "M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7",
+        "M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"
+    )
     val Clock = strokeIcon("clock", "M21 12a9 9 0 1 1-18 0a9 9 0 1 1 18 0", "M12 7v5l3 2")
     val Flag = strokeIcon("flag", "M5 21V4", "M5 4h11l-2 4 2 4H5")
     val Star = strokeIcon("star", STAR)

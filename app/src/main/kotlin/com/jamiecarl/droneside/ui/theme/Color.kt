@@ -22,3 +22,10 @@ val DsRaised = Color(0xFF1B2027)
 val DsNavBorder = Color(0xFF262C34)
 val DsSparkLine = Color(0xFF3E8FA6)
 val DsOnCyan = Color(0xFF04222B)
+
+// Live timing.
+val DsLive = Color(0xFF34D399)
+val DsLiveInk = Color(0xFF6EE7A8)
+val DsLiveSurface = Color(0xFF10231B)
+val DsLiveBorder = Color(0xFF1D4434)
+val DsRacingInk = Color(0xFFFF8FA3)

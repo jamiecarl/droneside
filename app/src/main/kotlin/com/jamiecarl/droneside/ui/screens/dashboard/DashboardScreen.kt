@@ -51,12 +51,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.jamiecarl.droneside.data.live.AufpvClient
+import com.jamiecarl.droneside.data.live.LiveClub
+import com.jamiecarl.droneside.data.live.matchTracksideClub
+import com.jamiecarl.droneside.ui.components.LiveTimingLink
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 data class DashboardUiState(
     val loading: Boolean = false,
     val club: Club? = null,
-    val events: List<Event> = emptyList()
+    val events: List<Event> = emptyList(),
+    /** The home club's AUFPV site, if it runs live timing there. */
+    val liveClub: LiveClub? = null
 )
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
@@ -78,6 +86,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 val club = repository.getClub(homeClubId)
                 val events = repository.getClubEvents(homeClubId)
                 _state.value = DashboardUiState(loading = false, club = club, events = events)
+                runCatching { AufpvClient.clubs().matchTracksideClub(club.name) }.getOrNull()?.let { live ->
+                    _state.value = _state.value.copy(liveClub = live)
+                }
             }.onFailure {
                 _state.value = _state.value.copy(loading = false)
             }
@@ -91,6 +102,7 @@ fun DashboardScreen(
     onOpenClub: (String) -> Unit,
     onOpenEvent: (Event) -> Unit,
     onSeeAll: () -> Unit,
+    onOpenLive: (String) -> Unit,
     viewModel: DashboardViewModel = viewModel()
 ) {
     // Re-runs whenever the tab is re-entered, so a newly starred home club shows up immediately.
@@ -104,6 +116,7 @@ fun DashboardScreen(
         val end = parseApiDate(event.end)
         (start != null && start.after(thirtyDaysAgo)) || (end != null && !end.before(now))
     }.take(5)
+    val raceDay = state.liveClub?.let { state.events.firstOrNull { isOnToday(it, now) } }
 
     val club = state.club
     when {
@@ -129,6 +142,16 @@ fun DashboardScreen(
                     Icon(DsIcons.ChevronRight, contentDescription = null, tint = DsMuted, modifier = Modifier.size(18.dp))
                 }
             }
+            val live = state.liveClub
+            if (raceDay != null && live != null) {
+                item {
+                    LiveTimingLink(
+                        title = raceDay.name,
+                        subtitle = "RACE DAY · WATCH LIVE TIMING",
+                        onClick = { onOpenLive(live.baseUrl) }
+                    )
+                }
+            }
             item {
                 SectionHeader(
                     "Upcoming & recent",
@@ -152,6 +175,15 @@ fun DashboardScreen(
         state.loading -> FullScreenLoading("Loading your home club...")
         else -> WelcomeState(onExplore = onSeeAll)
     }
+}
+
+/** Starts today, or is running now (multi-day events). */
+private fun isOnToday(event: Event, now: Date): Boolean {
+    val start = parseApiDate(event.start) ?: return false
+    val end = parseApiDate(event.end)
+    if (end != null && !start.after(now) && !end.before(now)) return true
+    val day = SimpleDateFormat("yyyyMMdd", Locale.US)
+    return day.format(start) == day.format(now)
 }
 
 @Composable
