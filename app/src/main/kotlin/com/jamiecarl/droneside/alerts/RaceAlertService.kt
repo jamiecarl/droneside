@@ -10,6 +10,9 @@ import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.jamiecarl.droneside.data.live.LiveClub
+import com.jamiecarl.droneside.data.live.LiveRecorder
+import java.io.File
+import kotlinx.coroutines.job
 import com.jamiecarl.droneside.data.live.LiveRaceState
 import com.jamiecarl.droneside.data.live.LiveSession
 import com.jamiecarl.droneside.data.live.LiveSnapshot
@@ -84,7 +87,11 @@ class RaceAlertService : Service() {
     }
 
     private suspend fun watch(clubUrl: String, clubName: String, callsign: String): Unit = coroutineScope {
-        val session = LiveSession(clubUrl, pinnedEventId = null)
+        val recorder = if (store.recordLiveData) {
+            LiveRecorder.start(capturesDir(this@RaceAlertService), clubUrl).also { it.note("callsign $callsign") }
+        } else null
+        coroutineContext.job.invokeOnCompletion { recorder?.close() }
+        val session = LiveSession(clubUrl, pinnedEventId = null, recorder = recorder)
         val detector = RaceAlertDetector(callsign, store.sentAlerts)
         var lastActivityAt = System.currentTimeMillis()
         var lastSignature: Any? = null
@@ -109,7 +116,10 @@ class RaceAlertService : Service() {
 
             val alerts = detector.update(snapshot)
             if (alerts.isNotEmpty()) {
-                alerts.forEach { RaceNotifications.show(this@RaceAlertService, it, clubUrl) }
+                alerts.forEach {
+                    recorder?.note("alert ${it.key}")
+                    RaceNotifications.show(this@RaceAlertService, it, clubUrl)
+                }
                 store.sentAlerts = detector.sentKeys
             }
 
@@ -147,6 +157,9 @@ class RaceAlertService : Service() {
 
         /** Give up after this long with nothing happening on the dashboard (the meeting's over). */
         const val IDLE_STOP_MS = 3 * 60 * 60 * 1000L
+
+        /** Debug recordings: <app files>/captures/<club>-<start time>/. tools/pull-captures.sh copies them off. */
+        fun capturesDir(context: Context) = File(context.filesDir, "captures")
 
         private val _running = MutableStateFlow(false)
         val running: StateFlow<Boolean> = _running.asStateFlow()

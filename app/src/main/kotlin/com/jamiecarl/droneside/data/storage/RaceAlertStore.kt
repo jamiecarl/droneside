@@ -2,6 +2,7 @@ package com.jamiecarl.droneside.data.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.jamiecarl.droneside.BuildConfig
 
 /** How race alerts look and sound. Defaults are the loudest, can't-miss-it setup. */
 data class AlertPrefs(
@@ -57,6 +58,11 @@ class RaceAlertStore(context: Context) {
             .putBoolean(KEY_POP_UP, value.popUp)
             .apply()
 
+    /** Debug builds: record the live stream and snapshots while watching (see LiveRecorder). On by default there. */
+    var recordLiveData: Boolean
+        get() = BuildConfig.DEBUG && prefs.getBoolean(KEY_RECORD, true)
+        set(value) = prefs.edit().putBoolean(KEY_RECORD, value).apply()
+
     /** Base URL of the AUFPV club being watched; null when alerts are off. */
     var watchedClubUrl: String?
         get() = prefs.getString(KEY_WATCHING, null)
@@ -84,6 +90,7 @@ class RaceAlertStore(context: Context) {
         const val KEY_UNTIL_DISMISSED = "alertUntilDismissed"
         const val KEY_VIBRATE = "alertVibrate"
         const val KEY_POP_UP = "alertPopUp"
+        const val KEY_RECORD = "recordLiveData"
         const val MAX_SENT = 200
     }
 }

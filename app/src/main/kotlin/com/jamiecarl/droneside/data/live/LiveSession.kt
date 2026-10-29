@@ -48,8 +48,17 @@ class LiveSession(
     private val baseUrl: String,
     /** Null follows whichever event the club's dashboard is showing (a new meeting is picked up on its own). */
     private val pinnedEventId: Int?,
-    private val fetchSnapshot: suspend (String, Int?) -> LiveSnapshot = AufpvClient::snapshot,
-    private val openStream: (String, Int) -> Flow<StreamEvent> = AufpvClient::stream,
+    /** Records the raw stream and snapshots for debugging, when set. */
+    private val recorder: LiveRecorder? = null,
+    private val fetchSnapshot: suspend (String, Int?) -> LiveSnapshot = { url, eventId ->
+        val html = AufpvClient.snapshotHtml(url, eventId)
+        val parsed = runCatching { AufpvClient.parseSnapshot(url, html) }
+        recorder?.snapshot(html, parsed.getOrNull())
+        parsed.getOrThrow()
+    },
+    private val openStream: (String, Int) -> Flow<StreamEvent> = { url, eventId ->
+        AufpvClient.stream(url, eventId, recorder?.let { r -> r::frame })
+    },
     private val now: () -> Long = System::currentTimeMillis
 ) {
     private val _state = MutableStateFlow(LiveSessionState())
@@ -103,6 +112,7 @@ class LiveSession(
         var failures = 0
         while (true) {
             val eventId = _state.value.snapshot?.eventId ?: _state.first { it.snapshot != null }.snapshot!!.eventId
+            recorder?.note("connect event=$eventId")
             try {
                 openStream(baseUrl, eventId).collect { event ->
                     failures = 0
@@ -113,6 +123,7 @@ class LiveSession(
                 throw e
             } catch (e: Exception) {
                 if (e !is EventChanged) failures++
+                recorder?.note("disconnected: ${if (e is EventChanged) "event changed" else e.message ?: e.javaClass.simpleName}")
             }
             _state.update { it.copy(connection = LiveConnection.RECONNECTING) }
             delay((RECONNECT_BASE_MS shl failures.coerceAtMost(4)).coerceAtMost(RECONNECT_MAX_MS))

@@ -45,13 +45,18 @@ object AufpvClient {
     }
 
     /** With no [eventId] the site picks the club's current event. */
-    suspend fun snapshot(baseUrl: String, eventId: Int?): LiveSnapshot = withContext(Dispatchers.IO) {
+    suspend fun snapshot(baseUrl: String, eventId: Int?): LiveSnapshot = parseSnapshot(baseUrl, snapshotHtml(baseUrl, eventId))
+
+    suspend fun snapshotHtml(baseUrl: String, eventId: Int?): String = withContext(Dispatchers.IO) {
         val query = if (eventId != null) "event=$eventId&embed=1" else "embed=1"
-        AufpvParser.parseSnapshot(get("$baseUrl/dronedash?$query"))
-            ?: throw IOException("No dronedash on $baseUrl")
+        get("$baseUrl/dronedash?$query")
     }
 
-    fun stream(baseUrl: String, eventId: Int): Flow<StreamEvent> = callbackFlow {
+    fun parseSnapshot(baseUrl: String, html: String): LiveSnapshot =
+        AufpvParser.parseSnapshot(html) ?: throw IOException("No dronedash on $baseUrl")
+
+    /** [onFrame] sees every raw frame (type, data) before it's parsed, for recording. */
+    fun stream(baseUrl: String, eventId: Int, onFrame: ((String, String) -> Unit)? = null): Flow<StreamEvent> = callbackFlow {
         val request = Request.Builder()
             .url("$baseUrl/dronedash/event/$eventId/stream")
             .header("User-Agent", USER_AGENT)
@@ -63,6 +68,7 @@ object AufpvClient {
             }
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
+                onFrame?.invoke(type ?: "message", data)
                 parseEvent(type ?: "message", data)?.let { trySend(it) }
             }
 

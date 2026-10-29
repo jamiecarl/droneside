@@ -45,7 +45,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jamiecarl.droneside.BuildConfig
 import com.jamiecarl.droneside.alerts.RaceAlertService
+import java.util.Locale
 import com.jamiecarl.droneside.alerts.RaceNotifications
 import com.jamiecarl.droneside.data.storage.AlertPrefs
 import com.jamiecarl.droneside.data.storage.RaceAlertStore
@@ -65,13 +67,41 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class SettingsUiState(val callsign: String? = null, val alerts: AlertPrefs = AlertPrefs())
+data class SettingsUiState(
+    val callsign: String? = null,
+    val alerts: AlertPrefs = AlertPrefs(),
+    val recordLive: Boolean = false,
+    /** e.g. "2 recordings · 18.4 MB". */
+    val recordings: String = ""
+)
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val store = RaceAlertStore(application)
 
-    private val _state = MutableStateFlow(SettingsUiState(store.callsign, store.alertPrefs))
+    private val _state = MutableStateFlow(
+        SettingsUiState(store.callsign, store.alertPrefs, store.recordLiveData, recordingsSummary())
+    )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
+
+    private fun recordingsSummary(): String {
+        val dirs = RaceAlertService.capturesDir(getApplication()).listFiles { f -> f.isDirectory }.orEmpty()
+        val bytes = dirs.sumOf { d -> d.walkTopDown().filter { it.isFile }.sumOf { it.length() } }
+        return "${dirs.size} recording${if (dirs.size == 1) "" else "s"} · " +
+            String.format(Locale.US, "%.1f MB", bytes / 1_048_576.0)
+    }
+
+    fun setRecordLive(on: Boolean) {
+        store.recordLiveData = on
+        _state.value = _state.value.copy(recordLive = store.recordLiveData)
+        // Takes effect from the next watch; restart a running one so it starts (or stops) now.
+        RaceAlertService.restartIfRunning(getApplication())
+    }
+
+    fun deleteRecordings() {
+        // Leave a recording that's still being written alone.
+        if (!RaceAlertService.running.value) RaceAlertService.capturesDir(getApplication()).deleteRecursively()
+        _state.value = _state.value.copy(recordings = recordingsSummary())
+    }
 
     fun setCallsign(callsign: String) {
         store.callsign = callsign
@@ -234,6 +264,24 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                     )
                 }
             )
+        }
+
+        if (BuildConfig.DEBUG) {
+            Section("DEVELOPER") {
+                SwitchRow(
+                    "Record live data",
+                    "While race alerts are on, save the live stream and dashboard snapshots on the phone. " +
+                        "Copy them off with tools/pull-captures.sh.",
+                    state.recordLive
+                ) { viewModel.setRecordLive(it) }
+                Divider()
+                NavRow(
+                    title = "Delete recordings",
+                    value = state.recordings,
+                    subtitle = if (RaceAlertService.running.value) "Stop race alerts first" else null,
+                    onClick = { viewModel.deleteRecordings() }
+                )
+            }
         }
     }
 
