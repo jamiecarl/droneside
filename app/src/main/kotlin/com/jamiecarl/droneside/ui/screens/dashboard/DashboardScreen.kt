@@ -33,6 +33,8 @@ import com.jamiecarl.droneside.data.model.Event
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
 import com.jamiecarl.droneside.data.storage.HomeClubStore
 import com.jamiecarl.droneside.ui.components.ClubLogo
+import com.jamiecarl.droneside.ui.components.DroneSideMark
+import com.jamiecarl.droneside.ui.components.DroneSideWordmark
 import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.EmptyState
 import com.jamiecarl.droneside.ui.components.EventCard
@@ -193,19 +195,14 @@ private fun WelcomeState(onExplore: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier.size(80.dp).dsCard(radius = 28.dp, background = DsCyanSurface, border = DsCyanBorder),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(DsIcons.Home, contentDescription = null, tint = DsCyan, modifier = Modifier.size(36.dp))
-        }
+        DroneSideMark(size = 96.dp)
         Text(
-            "Welcome to DroneSide",
-            color = DsInk,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 20.dp, bottom = 10.dp)
+            "Welcome to",
+            color = DsMuted,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(top = 20.dp)
         )
+        DroneSideWordmark(fontSize = 34.sp, modifier = Modifier.padding(bottom = 10.dp))
         Text(
             "Star a club from the Clubs tab to see its events here, or browse everything in Explore.",
             color = DsMuted,

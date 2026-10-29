@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lap D: the stem is the start/finish line, the bowl is the lap, the dot is the pilot. Drawn on the 108dp
+     adaptive-icon grid and scaled into the 66dp safe zone so round and squircle masks never clip it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.82"
+        android:scaleY="0.82">
+        <path
+            android:pathData="M27,28 V80"
+            android:strokeColor="#FFB020"
+            android:strokeWidth="7"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M39,30 H49 a24,24 0 0,1 0,48 H39"
+            android:strokeColor="#00D4FF"
+            android:strokeWidth="9"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:pathData="M62,54 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0"
+            android:strokeColor="#5900D4FF"
+            android:strokeWidth="2" />
+        <path
+            android:pathData="M67,54 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
+            android:fillColor="#F2F4F7" />
+    </group>
+</vector>

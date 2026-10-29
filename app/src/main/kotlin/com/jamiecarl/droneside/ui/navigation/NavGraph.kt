@@ -51,6 +51,8 @@ import com.jamiecarl.droneside.data.model.Event
 import com.jamiecarl.droneside.data.storage.LiveClubStore
 import com.jamiecarl.droneside.ui.screens.live.LiveScreen
 import com.jamiecarl.droneside.ui.screens.settings.SettingsScreen
+import com.jamiecarl.droneside.ui.components.DroneSideMark
+import com.jamiecarl.droneside.ui.components.DroneSideWordmark
 import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.RoundIconButton
 import com.jamiecarl.droneside.ui.screens.clubdetails.ClubDetailsScreen
@@ -82,12 +84,15 @@ private val tabs = listOf(
     TabItem(Routes.CLUBS, "Clubs", DsIcons.Users)
 )
 
+/** Home's header shows the logo and wordmark instead of a plain title. */
+private const val BRAND_TITLE = "DroneSide"
+
 private fun NavBackStackEntry.arg(name: String): String = decodeArg(arguments?.getString(name))
 
 /** Small context line above the title, and the title, for each screen's header. */
 private fun headerFor(entry: NavBackStackEntry?): Pair<String, String> = when (entry?.destination?.route) {
     Routes.DASHBOARD, null ->
-        SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(Date()).uppercase() to "DroneSide"
+        SimpleDateFormat("EEE d MMM", Locale.getDefault()).format(Date()).uppercase() to BRAND_TITLE
     Routes.LIVE -> "AUFPV LIVE TIMING" to "Live"
     Routes.EXPLORE -> "" to "Explore"
     Routes.CLUBS -> "" to "Clubs"
@@ -304,7 +309,14 @@ private fun TabHeader(context: String, title: String, onRefresh: () -> Unit, onS
             if (context.isNotEmpty()) {
                 Text(context, fontFamily = MonoDs, fontSize = 11.sp, letterSpacing = 1.5.sp, color = DsMuted)
             }
-            Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp, color = DsInk)
+            if (title == BRAND_TITLE) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    DroneSideMark(size = 34.dp)
+                    DroneSideWordmark(fontSize = 28.sp, modifier = Modifier.padding(start = 10.dp))
+                }
+            } else {
+                Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp, color = DsInk)
+            }
         }
         RoundIconButton(DsIcons.Settings, contentDescription = "Settings", onClick = onSettings)
         RoundIconButton(

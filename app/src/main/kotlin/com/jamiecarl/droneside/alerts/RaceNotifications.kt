@@ -121,7 +121,7 @@ object RaceNotifications {
 
     fun watching(context: Context, clubName: String, clubUrl: String, status: String): Notification =
         NotificationCompat.Builder(context, CHANNEL_WATCHING)
-            .setSmallIcon(R.drawable.ic_stat_live)
+            .setSmallIcon(R.drawable.ic_stat_droneside)
             .setColor(ACCENT)
             .setContentTitle("Watching $clubName")
             .setContentText(status)
@@ -169,7 +169,7 @@ object RaceNotifications {
                     "P${me.position ?: "—"} of ${alert.fieldSize}"
                 } + (me.bestLap?.let { " · best lap ${LiveMath.formatLap(it)}" } ?: "")
                 NotificationCompat.Builder(context, CHANNEL_RESULTS)
-                    .setSmallIcon(R.drawable.ic_stat_live)
+                    .setSmallIcon(R.drawable.ic_stat_droneside)
                     .setColor(ACCENT)
                     .setContentTitle("${alert.race.title} done")
                     .setContentText(line)
@@ -207,7 +207,7 @@ object RaceNotifications {
         big: String
     ): Notification {
         val notification = NotificationCompat.Builder(context, ensureAlertChannel(context, prefs))
-            .setSmallIcon(R.drawable.ic_stat_live)
+            .setSmallIcon(R.drawable.ic_stat_droneside)
             .setColor(ACCENT)
             .setContentTitle(title)
             .setContentText(text)
