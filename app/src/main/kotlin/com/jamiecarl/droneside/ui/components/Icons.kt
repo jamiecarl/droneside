@@ -45,6 +45,13 @@ object DsIcons {
         "M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7",
         "M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"
     )
+    val Settings = strokeIcon(
+        "settings",
+        "M4 7h9M17 7h3M4 17h3M11 17h9",
+        "M17 7a2 2 0 1 1-4 0a2 2 0 1 1 4 0",
+        "M11 17a2 2 0 1 1-4 0a2 2 0 1 1 4 0"
+    )
+    val Bell = strokeIcon("bell", "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9", "M10.3 21a1.94 1.94 0 0 0 3.4 0")
     val Clock = strokeIcon("clock", "M21 12a9 9 0 1 1-18 0a9 9 0 1 1 18 0", "M12 7v5l3 2")
     val Flag = strokeIcon("flag", "M5 21V4", "M5 4h11l-2 4 2 4H5")
     val Star = strokeIcon("star", STAR)

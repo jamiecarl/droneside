@@ -10,7 +10,9 @@ import com.jamiecarl.droneside.data.live.LiveSessionState
 import com.jamiecarl.droneside.data.live.matchTracksideClub
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
 import com.jamiecarl.droneside.data.storage.HomeClubStore
+import com.jamiecarl.droneside.alerts.RaceAlertService
 import com.jamiecarl.droneside.data.storage.LiveClubStore
+import com.jamiecarl.droneside.data.storage.RaceAlertStore
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,16 +27,47 @@ data class LiveUiState(
     val club: LiveClub? = null,
     /** Null follows the club's current event. */
     val pinnedEventId: Int? = null,
-    val session: LiveSessionState = LiveSessionState()
+    val session: LiveSessionState = LiveSessionState(),
+    val callsign: String? = null,
+    /** Name of the club the background race alerts are watching, when they're on. */
+    val alertsWatching: String? = null
 )
 
 class LiveViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = FpvTracksideRepository()
     private val homeClubStore = HomeClubStore(application)
     private val liveClubStore = LiveClubStore(application)
+    private val alertStore = RaceAlertStore(application)
 
-    private val _state = MutableStateFlow(LiveUiState())
+    private val _state = MutableStateFlow(LiveUiState(callsign = alertStore.callsign))
     val state: StateFlow<LiveUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            RaceAlertService.running.collect { running ->
+                _state.update { it.copy(alertsWatching = if (running) alertStore.watchedClubName else null) }
+            }
+        }
+    }
+
+    fun setCallsign(callsign: String) {
+        alertStore.callsign = callsign
+        _state.update { it.copy(callsign = alertStore.callsign) }
+        RaceAlertService.restartIfRunning(getApplication())
+    }
+
+    /** Call once notification permission is sorted. */
+    fun startAlerts() {
+        val club = _state.value.club ?: return
+        if (_state.value.callsign == null) return
+        RaceAlertService.stop(getApplication())
+        RaceAlertService.start(getApplication(), club)
+        _state.update { it.copy(alertsWatching = club.name) }
+    }
+
+    fun stopAlerts() {
+        RaceAlertService.stop(getApplication())
+    }
 
     private var session: LiveSession? = null
     private var sessionJob: Job? = null
@@ -42,6 +75,8 @@ class LiveViewModel(application: Application) : AndroidViewModel(application) {
     private var lastKey: Int? = null
 
     fun load(refreshKey: Int) {
+        // The callsign may have been changed in Settings.
+        _state.update { it.copy(callsign = alertStore.callsign) }
         if (lastKey == refreshKey) {
             // Re-entering the tab: another screen may have picked a club to watch.
             followStoredClub()

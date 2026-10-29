@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ import androidx.navigation.navArgument
 import com.jamiecarl.droneside.data.model.Event
 import com.jamiecarl.droneside.data.storage.LiveClubStore
 import com.jamiecarl.droneside.ui.screens.live.LiveScreen
+import com.jamiecarl.droneside.ui.screens.settings.SettingsScreen
 import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.RoundIconButton
 import com.jamiecarl.droneside.ui.screens.clubdetails.ClubDetailsScreen
@@ -89,6 +91,7 @@ private fun headerFor(entry: NavBackStackEntry?): Pair<String, String> = when (e
     Routes.LIVE -> "AUFPV LIVE TIMING" to "Live"
     Routes.EXPLORE -> "" to "Explore"
     Routes.CLUBS -> "" to "Clubs"
+    Routes.SETTINGS -> "" to "Settings"
     Routes.CLUB_DETAILS -> "" to "Club"
     Routes.EVENT_DETAILS -> "" to "Event"
     Routes.ROUND_DETAILS -> entry.arg("eventName") to "Round ${entry.arg("roundNumber")}"
@@ -114,8 +117,11 @@ private fun NavHostController.switchTab(route: String) = navigate(route) {
 }
 
 @Composable
-fun DronesideApp() {
+fun DronesideApp(openLiveRequests: Int = 0) {
     val navController = rememberNavController()
+    LaunchedEffect(openLiveRequests) {
+        if (openLiveRequests > 0) navController.switchTab(Routes.LIVE)
+    }
     val context = LocalContext.current
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -131,13 +137,18 @@ fun DronesideApp() {
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (isTabRoute) {
-                TabHeader(context = headerContext, title = title, onRefresh = { refreshKey++ })
+                TabHeader(
+                    context = headerContext,
+                    title = title,
+                    onRefresh = { refreshKey++ },
+                    onSettings = { navController.navigate(Routes.SETTINGS) }
+                )
             } else {
                 DetailHeader(
                     context = headerContext,
                     title = title,
                     onBack = { navController.popBackStack() },
-                    onRefresh = { refreshKey++ }
+                    onRefresh = if (currentRoute == Routes.SETTINGS) null else ({ refreshKey++ })
                 )
             }
 
@@ -156,7 +167,10 @@ fun DronesideApp() {
                     )
                 }
                 composable(Routes.LIVE) {
-                    LiveScreen(refreshKey = refreshKey)
+                    LiveScreen(refreshKey = refreshKey, onOpenSettings = { navController.navigate(Routes.SETTINGS) })
+                }
+                composable(Routes.SETTINGS) {
+                    SettingsScreen()
                 }
                 composable(Routes.EXPLORE) {
                     ExploreScreen(refreshKey = refreshKey, onOpenEvent = { navController.openEvent(it) })
@@ -281,7 +295,7 @@ fun DronesideApp() {
 }
 
 @Composable
-private fun TabHeader(context: String, title: String, onRefresh: () -> Unit) {
+private fun TabHeader(context: String, title: String, onRefresh: () -> Unit, onSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -292,12 +306,18 @@ private fun TabHeader(context: String, title: String, onRefresh: () -> Unit) {
             }
             Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp, color = DsInk)
         }
-        RoundIconButton(DsIcons.Refresh, contentDescription = "Refresh", onClick = onRefresh)
+        RoundIconButton(DsIcons.Settings, contentDescription = "Settings", onClick = onSettings)
+        RoundIconButton(
+            DsIcons.Refresh,
+            contentDescription = "Refresh",
+            onClick = onRefresh,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
 @Composable
-private fun DetailHeader(context: String, title: String, onBack: () -> Unit, onRefresh: () -> Unit) {
+private fun DetailHeader(context: String, title: String, onBack: () -> Unit, onRefresh: (() -> Unit)?) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -309,7 +329,7 @@ private fun DetailHeader(context: String, title: String, onBack: () -> Unit, onR
             }
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = DsInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        RoundIconButton(DsIcons.Refresh, contentDescription = "Refresh", onClick = onRefresh)
+        if (onRefresh != null) RoundIconButton(DsIcons.Refresh, contentDescription = "Refresh", onClick = onRefresh)
     }
 }
 

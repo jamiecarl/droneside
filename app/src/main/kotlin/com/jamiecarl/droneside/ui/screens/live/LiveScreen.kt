@@ -43,7 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.jamiecarl.droneside.alerts.isCallsign
 import com.jamiecarl.droneside.data.live.LapFeedItem
+import com.jamiecarl.droneside.data.live.LiveSnapshot
 import com.jamiecarl.droneside.data.live.LiveClub
 import com.jamiecarl.droneside.data.live.LiveConnection
 import com.jamiecarl.droneside.data.live.LiveEventRef
@@ -86,7 +88,7 @@ import com.jamiecarl.droneside.ui.theme.MonoDs
 import kotlinx.coroutines.delay
 
 @Composable
-fun LiveScreen(refreshKey: Int, viewModel: LiveViewModel = viewModel()) {
+fun LiveScreen(refreshKey: Int, onOpenSettings: () -> Unit, viewModel: LiveViewModel = viewModel()) {
     LaunchedEffect(refreshKey) { viewModel.load(refreshKey) }
     LifecycleStartEffect(viewModel) {
         viewModel.onVisible()
@@ -108,7 +110,19 @@ fun LiveScreen(refreshKey: Int, viewModel: LiveViewModel = viewModel()) {
             state = state,
             club = club,
             onSelectClub = viewModel::selectClub,
-            onSelectEvent = viewModel::selectEvent
+            onSelectEvent = viewModel::selectEvent,
+            alerts = {
+                RaceAlertsCard(
+                    callsign = state.callsign,
+                    watching = state.alertsWatching,
+                    clubName = club.name,
+                    pilotNames = pilotNames(state.session.snapshot),
+                    onSetCallsign = viewModel::setCallsign,
+                    onStart = viewModel::startAlerts,
+                    onStop = viewModel::stopAlerts,
+                    onOpenSettings = onOpenSettings
+                )
+            }
         )
     }
 }
@@ -145,17 +159,24 @@ private fun ClubPicker(clubs: List<LiveClub>, onSelect: (LiveClub) -> Unit) {
     }
 }
 
+private fun pilotNames(snapshot: LiveSnapshot?): List<String> = snapshot?.let { s ->
+    (s.races.flatMap { r -> r.pilots.map { it.name } } + s.upcoming.flatMap { r -> r.pilots.map { it.name } })
+        .filter { it.isNotBlank() }.distinct().sortedBy { it.lowercase() }
+}.orEmpty()
+
 @Composable
 private fun LiveContent(
     state: LiveUiState,
     club: LiveClub,
     onSelectClub: (LiveClub) -> Unit,
-    onSelectEvent: (Int?) -> Unit
+    onSelectEvent: (Int?) -> Unit,
+    alerts: @Composable () -> Unit
 ) {
     val session = state.session
     val snapshot = session.snapshot
     val current = snapshot?.current
     val standings = remember(current) { current?.let(LiveMath::standings).orEmpty() }
+    val callsign = state.callsign
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -165,6 +186,7 @@ private fun LiveContent(
         item(key = "club") {
             ClubBar(club, state.clubs, session.connection.takeIf { snapshot != null }, onSelectClub)
         }
+        item(key = "alerts") { alerts() }
         if (snapshot != null) {
             item(key = "event") {
                 EventBar(snapshot.eventName, snapshot.events, snapshot.eventId, state.pinnedEventId, onSelectEvent)
@@ -200,7 +222,11 @@ private fun LiveContent(
                     }
                     val fastest = LiveMath.fastestLap(current)
                     items(standings, key = { "p${it.pilot.id}" }) { standing ->
-                        StandingRow(standing, current, fastest, modifier = Modifier.animateItem())
+                        StandingRow(
+                            standing, current, fastest,
+                            isMe = callsign != null && isCallsign(standing.pilot.name, callsign),
+                            modifier = Modifier.animateItem()
+                        )
                     }
                 } else {
                     item(key = "no-race") { MessageCard("No race on right now", "The next heat shows here once it's set up.") }
@@ -210,7 +236,7 @@ private fun LiveContent(
                     item(key = "feed") { LapFeed(session.feed) }
                 }
                 snapshot.upcoming.take(2).forEachIndexed { i, race ->
-                    item(key = "up$i") { UpNextCard(race, isNext = i == 0) }
+                    item(key = "up$i") { UpNextCard(race, isNext = i == 0, callsign = callsign) }
                 }
                 items(snapshot.finished, key = { "r${it.id}" }) { race -> ResultCard(race) }
             }
@@ -450,7 +476,7 @@ private fun initials(name: String): String {
 }
 
 @Composable
-private fun StandingRow(standing: Standing, race: LiveRace, fastest: Double?, modifier: Modifier = Modifier) {
+private fun StandingRow(standing: Standing, race: LiveRace, fastest: Double?, isMe: Boolean, modifier: Modifier = Modifier) {
     val leader = standing.position == 1 && standing.pilot.laps.isNotEmpty()
     val channelColor = parseHexColor(standing.pilot.color) ?: DsFaint
     Row(
@@ -459,7 +485,11 @@ private fun StandingRow(standing: Standing, race: LiveRace, fastest: Double?, mo
             .dsCard(
                 radius = 16.dp,
                 background = if (leader) DsCyanSurface else DsSurface,
-                border = if (leader) DsCyanBorder else DsLine
+                border = when {
+                    isMe -> DsLive
+                    leader -> DsCyanBorder
+                    else -> DsLine
+                }
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -487,7 +517,18 @@ private fun StandingRow(standing: Standing, race: LiveRace, fastest: Double?, mo
             )
         }
         Column(modifier = Modifier.weight(1f).padding(horizontal = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(standing.pilot.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = DsInk, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    standing.pilot.name,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = DsInk,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                if (isMe) YouTag(modifier = Modifier.padding(start = 6.dp))
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(standing.pilot.channel, fontFamily = MonoDs, fontSize = 10.sp, color = DsMuted)
                 val segments = if (race.isTimeTrial) maxOf(standing.lapsDone, 1).coerceAtMost(12) else race.targetLaps
@@ -578,26 +619,29 @@ private fun LapFeed(feed: List<LapFeedItem>) {
 
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun UpNextCard(race: UpcomingRace, isNext: Boolean) {
+private fun UpNextCard(race: UpcomingRace, isNext: Boolean, callsign: String?) {
+    val mine = callsign != null && race.pilots.any { isCallsign(it.name, callsign) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 6.dp)
-            .dsCard(radius = 20.dp)
+            .dsCard(radius = 20.dp, border = if (mine) DsLive else DsLine)
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             SectionLabel(if (isNext) "UP NEXT" else "AFTER THAT", modifier = Modifier.weight(1f))
+            if (mine) YouTag(text = "YOU'RE IN THIS ONE", modifier = Modifier.padding(end = 8.dp))
             SectionLabel("${race.pilots.size} PILOTS")
         }
         Text(race.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DsInk)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             race.pilots.forEach { p ->
+                val isMe = callsign != null && isCallsign(p.name, callsign)
                 Row(
                     modifier = Modifier
-                        .background(DsSurface2, RoundedCornerShape(10.dp))
-                        .border(1.dp, DsLine, RoundedCornerShape(10.dp))
+                        .background(if (isMe) DsLiveSurface else DsSurface2, RoundedCornerShape(10.dp))
+                        .border(1.dp, if (isMe) DsLive else DsLine, RoundedCornerShape(10.dp))
                         .padding(horizontal = 8.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -654,6 +698,22 @@ private fun ResultCard(race: LiveRace) {
             }
         }
     }
+}
+
+@Composable
+private fun YouTag(modifier: Modifier = Modifier, text: String = "YOU") {
+    Text(
+        text,
+        fontFamily = MonoDs,
+        fontSize = 9.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 1.sp,
+        color = DsLiveInk,
+        modifier = modifier
+            .background(DsLiveSurface, RoundedCornerShape(999.dp))
+            .border(1.dp, DsLiveBorder, RoundedCornerShape(999.dp))
+            .padding(horizontal = 7.dp, vertical = 2.dp)
+    )
 }
 
 @Composable
