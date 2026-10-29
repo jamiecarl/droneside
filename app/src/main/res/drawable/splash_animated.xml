@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Splash icon: Lap D draws itself. The start line drops in, the lap traces round the bowl, then the pilot's
+     dot pops in with its halo. Same geometry as the launcher icon, so it hands over to the app seamlessly.
+     ~1s total; Android 12+ plays it, older versions show the finished frame. -->
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="108dp"
+            android:height="108dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+            <group
+                android:pivotX="54"
+                android:pivotY="54"
+                android:scaleX="0.82"
+                android:scaleY="0.82">
+                <path
+                    android:name="stem"
+                    android:pathData="M27,80 V28"
+                    android:strokeColor="#FFB020"
+                    android:strokeWidth="7"
+                    android:strokeLineCap="round"
+                    android:trimPathEnd="0" />
+                <path
+                    android:name="lap"
+                    android:pathData="M39,30 H49 a24,24 0 0,1 0,48 H39"
+                    android:strokeColor="#00D4FF"
+                    android:strokeWidth="9"
+                    android:strokeLineCap="round"
+                    android:strokeLineJoin="round"
+                    android:trimPathEnd="0" />
+                <path
+                    android:name="halo"
+                    android:pathData="M62,54 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0"
+                    android:strokeColor="#00D4FF"
+                    android:strokeWidth="2"
+                    android:strokeAlpha="0" />
+                <group
+                    android:name="dot"
+                    android:pivotX="73"
+                    android:pivotY="54"
+                    android:scaleX="0"
+                    android:scaleY="0">
+                    <path
+                        android:pathData="M67,54 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
+                        android:fillColor="#F2F4F7" />
+                </group>
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="stem">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="trimPathEnd"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:duration="260"
+                android:interpolator="@android:interpolator/fast_out_slow_in" />
+        </aapt:attr>
+    </target>
+
+    <target android:name="lap">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="trimPathEnd"
+                android:valueFrom="0"
+                android:valueTo="1"
+                android:startOffset="160"
+                android:duration="560"
+                android:interpolator="@android:interpolator/fast_out_slow_in" />
+        </aapt:attr>
+    </target>
+
+    <target android:name="dot">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:startOffset="620"
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:startOffset="620"
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="halo">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="strokeAlpha"
+                android:valueFrom="0"
+                android:valueTo="0.35"
+                android:startOffset="760"
+                android:duration="240" />
+        </aapt:attr>
+    </target>
+</animated-vector>
