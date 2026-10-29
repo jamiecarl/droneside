@@ -1,6 +1,5 @@
 package com.jamiecarl.droneside.ui.screens.clubs
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,14 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,14 +31,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jamiecarl.droneside.data.model.Club
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
 import com.jamiecarl.droneside.ui.components.ClubLogo
+import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.EmptyState
-import com.jamiecarl.droneside.ui.components.FaIcon
-import com.jamiecarl.droneside.ui.components.FontAwesome
+import com.jamiecarl.droneside.ui.components.FloatingNavClearance
 import com.jamiecarl.droneside.ui.components.FullScreenLoading
-import com.jamiecarl.droneside.ui.theme.DsCyan
-import com.jamiecarl.droneside.ui.theme.DsFaint
+import com.jamiecarl.droneside.ui.components.SearchField
+import com.jamiecarl.droneside.ui.components.dsCard
 import com.jamiecarl.droneside.ui.theme.DsInk
-import com.jamiecarl.droneside.ui.theme.DsLine
 import com.jamiecarl.droneside.ui.theme.DsMuted
 import com.jamiecarl.droneside.ui.theme.MonoDs
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,74 +78,48 @@ fun ClubsScreen(
     onOpenClub: (String) -> Unit,
     viewModel: ClubsViewModel = viewModel()
 ) {
-    androidx.compose.runtime.LaunchedEffect(refreshKey) { viewModel.refresh(refreshKey) }
+    LaunchedEffect(refreshKey) { viewModel.refresh(refreshKey) }
     val state by viewModel.state.collectAsState()
-    var searchText by remember { mutableStateOf("") }
+    var searchText by rememberSaveable { mutableStateOf("") }
 
-    val filteredClubs = if (searchText.isBlank()) {
-        state.clubs
-    } else {
-        state.clubs.filter { it.name.lowercase().contains(searchText.lowercase().trim()) }
-    }
+    val term = searchText.trim().lowercase()
+    val filteredClubs = if (term.isEmpty()) state.clubs else state.clubs.filter { it.name.lowercase().contains(term) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .border(1.dp, if (searchText.isNotBlank()) DsCyan else DsLine, RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                BasicTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    textStyle = androidx.compose.ui.text.TextStyle(color = DsInk, fontSize = 16.sp),
-                    decorationBox = { inner ->
-                        if (searchText.isEmpty()) {
-                            Text("Search clubs by name...", color = DsMuted, fontSize = 16.sp)
-                        }
-                        inner()
-                    }
-                )
-            }
-            Text(
-                text = FaIcon.TIMES,
-                fontFamily = FontAwesome,
-                color = if (searchText.isNotBlank()) DsCyan else DsFaint,
-                fontSize = 18.sp,
-                modifier = Modifier.clickable { searchText = "" }
-            )
-        }
+        SearchField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = "Search clubs by name",
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)
+        )
 
         when {
             state.loading -> FullScreenLoading("Loading clubs...")
-            filteredClubs.isEmpty() && searchText.isNotBlank() -> EmptyState(
-                icon = FaIcon.SEARCH,
-                title = "No clubs found matching \"$searchText\"",
-                subtitle = ""
-            )
-            filteredClubs.isEmpty() -> EmptyState(icon = FaIcon.USERS, title = "No clubs found", subtitle = "")
+            filteredClubs.isEmpty() && term.isNotEmpty() ->
+                EmptyState(DsIcons.Search, "No clubs match \"${searchText.trim()}\"")
+            filteredClubs.isEmpty() -> EmptyState(DsIcons.Users, "No clubs found")
             else -> LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp)
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = FloatingNavClearance),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(filteredClubs) { club ->
+                items(filteredClubs, key = { it.id }) { club ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 10.dp)
-                            .border(1.dp, DsLine, RoundedCornerShape(16.dp))
+                            .dsCard()
                             .clickable { onOpenClub(club.id) }
-                            .padding(14.dp),
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ClubLogo(logoUrl = club.logoUrl, modifier = Modifier.size(44.dp))
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
-                            Text(text = club.name, color = DsInk, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            Text(text = club.timezone ?: "", fontFamily = MonoDs, fontSize = 12.sp, color = DsMuted)
+                        Column(
+                            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Text(club.name, color = DsInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            club.timezone?.let { Text(it, fontFamily = MonoDs, fontSize = 11.sp, color = DsMuted) }
                         }
+                        Icon(DsIcons.ChevronRight, contentDescription = null, tint = DsMuted, modifier = Modifier.size(18.dp))
                     }
                 }
             }

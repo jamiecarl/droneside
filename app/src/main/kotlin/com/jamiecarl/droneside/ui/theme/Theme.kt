@@ -5,11 +5,10 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.sp
 
 private val DronesideColorScheme = darkColorScheme(
     primary = DsCyan,
-    onPrimary = DsBase,
+    onPrimary = DsOnCyan,
     background = DsBase,
     onBackground = DsInk,
     surface = DsSurface,
@@ -20,11 +19,17 @@ private val DronesideColorScheme = darkColorScheme(
     error = DsDnf
 )
 
-private val DronesideTypography = Typography(
-    bodyLarge = TextStyle(fontSize = 16.sp, color = DsInk),
-    bodyMedium = TextStyle(fontSize = 14.sp, color = DsInk2),
-    bodySmall = TextStyle(fontSize = 12.sp, color = DsMuted)
-)
+private fun TextStyle.inter() = copy(fontFamily = Inter)
+
+private val DronesideTypography = Typography().run {
+    copy(
+        displayLarge = displayLarge.inter(), displayMedium = displayMedium.inter(), displaySmall = displaySmall.inter(),
+        headlineLarge = headlineLarge.inter(), headlineMedium = headlineMedium.inter(), headlineSmall = headlineSmall.inter(),
+        titleLarge = titleLarge.inter(), titleMedium = titleMedium.inter(), titleSmall = titleSmall.inter(),
+        bodyLarge = bodyLarge.inter(), bodyMedium = bodyMedium.inter(), bodySmall = bodySmall.inter(),
+        labelLarge = labelLarge.inter(), labelMedium = labelMedium.inter(), labelSmall = labelSmall.inter()
+    )
+}
 
 @Composable
 fun DronesideTheme(content: @Composable () -> Unit) {

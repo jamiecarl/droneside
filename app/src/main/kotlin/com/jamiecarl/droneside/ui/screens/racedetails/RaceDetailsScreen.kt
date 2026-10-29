@@ -1,5 +1,6 @@
 package com.jamiecarl.droneside.ui.screens.racedetails
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,17 +14,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,8 +47,9 @@ import com.jamiecarl.droneside.data.model.ResultSummary
 import com.jamiecarl.droneside.data.model.resolveImageUrl
 import com.jamiecarl.droneside.data.repository.EventSessionCache
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
+import com.jamiecarl.droneside.ui.components.Chip
+import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.EmptyState
-import com.jamiecarl.droneside.ui.components.FaIcon
 import com.jamiecarl.droneside.ui.components.FullScreenLoading
 import com.jamiecarl.droneside.ui.components.InlinePlaceholder
 import com.jamiecarl.droneside.ui.components.LapSparkline
@@ -46,25 +57,28 @@ import com.jamiecarl.droneside.ui.components.LapTable
 import com.jamiecarl.droneside.ui.components.PilotAvatar
 import com.jamiecarl.droneside.ui.components.SectionLabel
 import com.jamiecarl.droneside.ui.components.StatTile
+import com.jamiecarl.droneside.ui.components.dsCard
 import com.jamiecarl.droneside.ui.screens.rounddetails.displayTime
+import com.jamiecarl.droneside.ui.screens.rounddetails.raceStatusLabel
 import com.jamiecarl.droneside.ui.theme.DsCyan
 import com.jamiecarl.droneside.ui.theme.DsCyanBorder
 import com.jamiecarl.droneside.ui.theme.DsCyanSurface
 import com.jamiecarl.droneside.ui.theme.DsHoleshot
 import com.jamiecarl.droneside.ui.theme.DsInk
+import com.jamiecarl.droneside.ui.theme.DsInk2
 import com.jamiecarl.droneside.ui.theme.DsLine
 import com.jamiecarl.droneside.ui.theme.DsLineSoft
 import com.jamiecarl.droneside.ui.theme.DsMuted
-import com.jamiecarl.droneside.ui.theme.DsMuted2
 import com.jamiecarl.droneside.ui.theme.DsSurface
-import com.jamiecarl.droneside.ui.theme.DsSurface2
 import com.jamiecarl.droneside.ui.theme.MonoDs
+import com.jamiecarl.droneside.util.RaceStatus
 import com.jamiecarl.droneside.util.formatClockTime
 import com.jamiecarl.droneside.util.formatRaceTime
 import com.jamiecarl.droneside.util.hasRaceStarted
 import com.jamiecarl.droneside.util.isRaceFinished
 import com.jamiecarl.droneside.util.lapsForPilot
 import com.jamiecarl.droneside.util.raceDuration
+import com.jamiecarl.droneside.util.raceStatus
 import com.jamiecarl.droneside.util.sortResultsByPbTime
 import com.jamiecarl.droneside.util.sortResultsByPosition
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -124,11 +138,13 @@ fun RaceDetailsScreen(
     LaunchedEffect(raceId, refreshKey) { viewModel.load(eventId, roundId, raceId, eventType, refreshKey) }
     val state by viewModel.state.collectAsState()
     val isTimeTrial = eventType == "TimeTrial"
+    // null = untouched, so the top finisher starts expanded; afterwards it's whatever the user opened.
+    var expanded by remember(raceId) { mutableStateOf<Set<String>?>(null) }
 
     val race = state.race
     when {
         state.loading -> FullScreenLoading("Loading race...")
-        race == null -> EmptyState(icon = FaIcon.FLAG_CHECKERED, title = "Race not found", subtitle = "")
+        race == null -> EmptyState(DsIcons.Flag, "Race not found")
         else -> {
             fun pilotOf(id: String) = state.pilots.find { it.id == id }
             val podium: List<ResultSummary>? = if (isRaceFinished(race.start, race.end)) {
@@ -138,88 +154,43 @@ fun RaceDetailsScreen(
             val orderedPodium = podium?.let { if (it.size == 3) listOf(it[1], it[0], it[2]) else it }
             val started = hasRaceStarted(race.start)
             val duration = raceDuration(race.start, race.end)
+            val status = raceStatus(race.start, race.end)
             val results = sortResultsByPosition(race.resultSummaries)
+            val openIds = expanded ?: setOfNotNull(results.firstOrNull()?.id)
 
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                if (orderedPodium != null) {
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(20.dp, 8.dp, 20.dp, 12.dp),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            orderedPodium.forEach { result ->
-                                val first = result.position == "1"
-                                val blockHeight = when (result.position?.toIntOrNull() ?: 3) {
-                                    1 -> 92.dp
-                                    2 -> 62.dp
-                                    else -> 46.dp
-                                }
-                                Column(
-                                    modifier = Modifier.weight(1f).padding(horizontal = 3.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    PilotAvatar(
-                                        photoUrl = resolveImageUrl(pilotOf(result.pilot)?.photoUrl),
-                                        modifier = Modifier.size(if (first) 40.dp else 32.dp)
-                                    )
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(top = 8.dp)
-                                            .fillMaxWidth()
-                                            .height(blockHeight)
-                                            .background(
-                                                if (first) DsCyanSurface else DsSurface2,
-                                                RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                                            )
-                                            .border(
-                                                1.dp,
-                                                if (first) DsCyanBorder else DsLine,
-                                                RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                                            )
-                                            .padding(vertical = 8.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = result.position ?: "?",
-                                            fontFamily = MonoDs,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = if (first) 20.sp else 16.sp,
-                                            color = if (first) DsCyan else DsMuted
-                                        )
-                                        Text(
-                                            text = pilotOf(result.pilot)?.name ?: "Unknown Pilot",
-                                            fontSize = 12.sp,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            fontWeight = if (first) FontWeight.SemiBold else FontWeight.Normal,
-                                            color = if (first) DsInk else DsMuted2
-                                        )
-                                        Text(
-                                            text = displayTime(result, eventType),
-                                            fontFamily = MonoDs,
-                                            fontSize = 11.sp,
-                                            color = if (first) DsCyan else DsMuted
-                                        )
-                                    }
-                                }
-                            }
-                        }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SectionLabel("${results.size} PILOTS", modifier = Modifier.weight(1f))
+                        val running = status == RaceStatus.RUNNING
+                        Chip(
+                            raceStatusLabel(status),
+                            color = if (running) DsCyan else DsMuted,
+                            background = if (running) DsCyanSurface else Color.Transparent,
+                            border = if (running) DsCyanBorder else DsLine
+                        )
                     }
+                }
+
+                if (orderedPodium != null) {
+                    item { Podium(orderedPodium, eventType, ::pilotOf) }
                 }
 
                 if (started) {
                     item {
-                        Column {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
                             Box(Modifier.fillMaxWidth().height(1.dp).background(DsLineSoft))
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                SectionLabel("START", modifier = Modifier.padding(end = 6.dp))
-                                Text(formatClockTime(race.start), fontFamily = MonoDs, fontSize = 12.sp, color = DsMuted, modifier = Modifier.weight(1f))
-                                SectionLabel("END", modifier = Modifier.padding(end = 6.dp))
-                                Text(formatClockTime(race.end), fontFamily = MonoDs, fontSize = 12.sp, color = DsMuted, modifier = Modifier.weight(1f))
-                                duration?.let { Text(it, fontFamily = MonoDs, fontSize = 12.sp, color = DsMuted) }
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+                                TimingCell("START", formatClockTime(race.start), Modifier.weight(1f))
+                                TimingCell("END", formatClockTime(race.end), Modifier.weight(1f))
+                                TimingCell("TIME", duration ?: "—", Modifier.weight(1f))
                             }
                             Box(Modifier.fillMaxWidth().height(1.dp).background(DsLineSoft))
                         }
@@ -227,69 +198,196 @@ fun RaceDetailsScreen(
                 }
 
                 items(results, key = { it.id }) { result ->
-                    val laps = lapsForPilot(state.raw, result.pilot)
-                    val pilot = pilotOf(result.pilot)
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp, 10.dp, 16.dp, 0.dp)
-                            .background(DsSurface, RoundedCornerShape(16.dp))
-                            .border(1.dp, DsLine, RoundedCornerShape(16.dp))
-                            .padding(14.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                modifier = Modifier.weight(1f).clickable { onOpenPilot(result.pilot) },
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                PilotAvatar(photoUrl = resolveImageUrl(pilot?.photoUrl), modifier = Modifier.size(44.dp))
-                                Column(modifier = Modifier.padding(start = 12.dp)) {
-                                    Text(pilot?.name ?: "Unknown Pilot", color = DsInk, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                                    Text("${laps.size} laps", fontFamily = MonoDs, fontSize = 10.sp, color = DsMuted2)
-                                }
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                if (!isTimeTrial) {
-                                    Text(
-                                        text = result.position?.takeIf { it.isNotBlank() } ?: "NA",
-                                        fontFamily = MonoDs,
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (result.position == "1") DsCyan else DsInk
-                                    )
-                                }
-                                val points = result.points?.toIntOrNull() ?: 0
-                                if (points > 0) {
-                                    Text("$points PTS", fontFamily = MonoDs, fontSize = 10.sp, color = DsMuted2)
-                                }
-                            }
-                        }
-
-                        if (!state.loadingLaps && laps.size > 1) {
-                            LapSparkline(laps = laps.map { it.lengthSeconds }, heightDp = 46, modifier = Modifier.padding(bottom = 10.dp))
-                        }
-
-                        if (!isTimeTrial) {
-                            val avg = if (laps.isEmpty()) "NA" else String.format(Locale.US, "%.2f", laps.map { it.lengthSeconds }.average())
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                StatTile("HOLESHOT", formatRaceTime(result.holeshotTime ?: "NA"), Modifier.weight(1f), DsHoleshot)
-                                StatTile("BEST LAP", formatRaceTime(result.pbLapTime ?: "NA"), Modifier.weight(1f), DsCyan)
-                                StatTile("AVG", avg, Modifier.weight(1f))
-                            }
-                        } else {
-                            StatTile("BEST LAP", formatRaceTime(result.pbLapTime ?: "NA"), Modifier.fillMaxWidth(), DsCyan)
-                        }
-
-                        when {
-                            state.loadingLaps -> InlinePlaceholder(FaIcon.SPINNER, "Loading race data...", "Please wait while we fetch the lap times")
-                            laps.isNotEmpty() -> LapTable(laps, modifier = Modifier.padding(top = 10.dp))
-                            else -> InlinePlaceholder(FaIcon.CLOCK, "No laps recorded", "This pilot hasn't completed any valid laps")
-                        }
-                    }
+                    val isOpen = result.id in openIds
+                    PilotResultCard(
+                        result = result,
+                        pilot = pilotOf(result.pilot),
+                        raw = state.raw,
+                        loadingLaps = state.loadingLaps,
+                        isTimeTrial = isTimeTrial,
+                        expanded = isOpen,
+                        onToggle = { expanded = if (isOpen) openIds - result.id else openIds + result.id },
+                        onOpenPilot = { onOpenPilot(result.pilot) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimingCell(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        SectionLabel(label)
+        Text(value, fontFamily = MonoDs, fontSize = 13.sp, color = DsInk2)
+    }
+}
+
+@Composable
+private fun Podium(ordered: List<ResultSummary>, eventType: String, pilotOf: (String) -> Pilot?) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
+        ordered.forEach { result ->
+            val first = result.position == "1"
+            val blockHeight = when (result.position?.toIntOrNull() ?: 3) {
+                1 -> 104.dp
+                2 -> 78.dp
+                else -> 62.dp
+            }
+            val pilot = pilotOf(result.pilot)
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                PilotAvatar(
+                    photoUrl = resolveImageUrl(pilot?.photoUrl),
+                    cornerRadius = if (first) 16.dp else 14.dp,
+                    modifier = Modifier
+                        .size(if (first) 48.dp else 40.dp)
+                        .let { if (first) it.border(2.dp, DsCyan, RoundedCornerShape(16.dp)) else it }
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(blockHeight)
+                        .let {
+                            val shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 6.dp, bottomEnd = 6.dp)
+                            if (first) it.background(DsCyanSurface, shape).border(1.dp, DsCyanBorder, shape)
+                            else it.background(DsSurface, shape).border(1.dp, DsLine, shape)
+                        }
+                        .padding(horizontal = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        result.position ?: "?",
+                        fontFamily = MonoDs,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = if (first) 22.sp else 16.sp,
+                        color = if (first) DsCyan else DsMuted
+                    )
+                    Text(
+                        pilot?.name ?: "Unknown Pilot",
+                        fontSize = if (first) 13.sp else 12.sp,
+                        fontWeight = if (first) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (first) DsInk else DsInk2,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        displayTime(result, eventType),
+                        fontFamily = MonoDs,
+                        fontSize = 11.sp,
+                        color = if (first) DsCyan else DsMuted
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PilotResultCard(
+    result: ResultSummary,
+    pilot: Pilot?,
+    raw: RawRaceData?,
+    loadingLaps: Boolean,
+    isTimeTrial: Boolean,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    onOpenPilot: () -> Unit
+) {
+    val laps = lapsForPilot(raw, result.pilot)
+    val points = result.points?.toIntOrNull() ?: 0
+    val position = result.position?.takeIf { it.isNotBlank() }
+    val isWinner = position == "1"
+    val meta = buildString {
+        append("${laps.size} LAPS")
+        if (points > 0) append(" · $points PTS")
+    }
+
+    Column(modifier = Modifier.fillMaxWidth().dsCard(radius = 22.dp).animateContentSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClickLabel = if (expanded) "Collapse" else "Expand", onClick = onToggle)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                position ?: "–",
+                fontFamily = MonoDs,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isWinner) DsCyan else DsInk2,
+                modifier = Modifier.width(26.dp)
+            )
+            PilotAvatar(
+                photoUrl = resolveImageUrl(pilot?.photoUrl),
+                modifier = Modifier.size(if (expanded) 44.dp else 34.dp),
+                cornerRadius = if (expanded) 14.dp else 11.dp
+            )
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(pilot?.name ?: "Unknown Pilot", color = DsInk, fontSize = if (expanded) 16.sp else 14.sp, fontWeight = FontWeight.SemiBold)
+                if (expanded) SectionLabel(meta)
+            }
+            if (!expanded) {
+                Text(
+                    "BEST ${formatRaceTime(result.pbLapTime ?: "–")}",
+                    fontFamily = MonoDs,
+                    fontSize = 12.sp,
+                    color = DsMuted,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+            Icon(
+                DsIcons.ChevronDown,
+                contentDescription = null,
+                tint = DsMuted,
+                modifier = Modifier.size(18.dp).rotate(if (expanded) 180f else 0f)
+            )
+        }
+
+        if (expanded) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (!loadingLaps && laps.size > 1) {
+                    LapSparkline(laps = laps.map { it.lengthSeconds }, heightDp = 56)
+                }
+                if (!isTimeTrial) {
+                    val avg = if (laps.isEmpty()) "NA" else String.format(Locale.US, "%.2f", laps.map { it.lengthSeconds }.average())
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        StatTile("HOLESHOT", formatRaceTime(result.holeshotTime ?: "NA"), Modifier.weight(1f), DsHoleshot)
+                        StatTile("BEST LAP", formatRaceTime(result.pbLapTime ?: "NA"), Modifier.weight(1f), DsCyan)
+                        StatTile("AVG", avg, Modifier.weight(1f))
+                    }
+                } else {
+                    StatTile("BEST LAP", formatRaceTime(result.pbLapTime ?: "NA"), Modifier.fillMaxWidth(), DsCyan)
+                }
+                when {
+                    loadingLaps -> InlinePlaceholder(null, "Loading race data...", "Fetching the lap times")
+                    laps.isNotEmpty() -> LapTable(laps)
+                    else -> InlinePlaceholder(DsIcons.Clock, "No laps recorded", "This pilot hasn't completed any valid laps")
+                }
+                Text(
+                    "View pilot",
+                    color = DsCyan,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .dsCard(radius = 14.dp, background = DsCyanSurface, border = DsCyanBorder)
+                        .clickable(role = Role.Button, onClick = onOpenPilot)
+                        .padding(vertical = 12.dp)
+                )
             }
         }
     }

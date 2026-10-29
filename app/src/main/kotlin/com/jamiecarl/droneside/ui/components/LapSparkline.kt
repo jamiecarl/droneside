@@ -16,7 +16,12 @@ private val DotColor = Color(0xFF00D4FF)
 
 /** Port of the original CanvasView-based sparkline: faster laps read higher on the chart. */
 @Composable
-fun LapSparkline(laps: List<Double>, heightDp: Int = 46, modifier: Modifier = Modifier) {
+fun LapSparkline(
+    laps: List<Double>,
+    heightDp: Int = 46,
+    modifier: Modifier = Modifier,
+    holeColor: Color = com.jamiecarl.droneside.ui.theme.DsSurface
+) {
     Canvas(modifier = modifier.fillMaxWidth().height(heightDp.dp)) {
         if (laps.size < 2) return@Canvas
 
@@ -59,6 +64,7 @@ fun LapSparkline(laps: List<Double>, heightDp: Int = 46, modifier: Modifier = Mo
             if (i == bestIndex) {
                 drawCircle(color = DotColor, radius = 3.5.dp.toPx(), center = point)
             } else {
+                drawCircle(color = holeColor, radius = 3.dp.toPx(), center = point)
                 drawCircle(
                     color = DotColor,
                     radius = 3.dp.toPx(),

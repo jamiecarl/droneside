@@ -16,8 +16,9 @@ object Routes {
     const val ROUND_DETAILS =
         "round/{eventId}/{roundId}?eventName={eventName}&roundNumber={roundNumber}&eventType={eventType}"
     const val RACE_DETAILS =
-        "race/{eventId}/{roundId}/{raceId}?roundNumber={roundNumber}&raceNumber={raceNumber}&eventType={eventType}"
-    const val PILOT_DETAILS = "pilot/{eventId}/{pilotId}"
+        "race/{eventId}/{roundId}/{raceId}?eventName={eventName}&roundNumber={roundNumber}" +
+            "&raceNumber={raceNumber}&eventType={eventType}"
+    const val PILOT_DETAILS = "pilot/{eventId}/{pilotId}?eventName={eventName}"
 
     fun clubDetails(clubId: String) = "club/${encodeArg(clubId)}"
 
@@ -32,12 +33,14 @@ object Routes {
         eventId: String,
         roundId: String,
         raceId: String,
+        eventName: String,
         roundNumber: String,
         raceNumber: Int,
         eventType: String
     ) = "race/${encodeArg(eventId)}/${encodeArg(roundId)}/${encodeArg(raceId)}" +
-        "?roundNumber=${encodeArg(roundNumber)}&raceNumber=$raceNumber&eventType=${encodeArg(eventType)}"
+        "?eventName=${encodeArg(eventName)}&roundNumber=${encodeArg(roundNumber)}" +
+        "&raceNumber=$raceNumber&eventType=${encodeArg(eventType)}"
 
-    fun pilotDetails(eventId: String, pilotId: String) =
-        "pilot/${encodeArg(eventId)}/${encodeArg(pilotId)}"
+    fun pilotDetails(eventId: String, pilotId: String, eventName: String) =
+        "pilot/${encodeArg(eventId)}/${encodeArg(pilotId)}?eventName=${encodeArg(eventName)}"
 }

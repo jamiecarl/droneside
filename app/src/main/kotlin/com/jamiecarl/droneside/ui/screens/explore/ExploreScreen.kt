@@ -1,36 +1,34 @@
 package com.jamiecarl.droneside.ui.screens.explore
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.jamiecarl.droneside.data.model.Channel
 import com.jamiecarl.droneside.data.model.Event
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
-import com.jamiecarl.droneside.ui.components.ClubEventHeaderCard
+import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.EmptyState
-import com.jamiecarl.droneside.ui.components.FaIcon
+import com.jamiecarl.droneside.ui.components.EventCard
+import com.jamiecarl.droneside.ui.components.FloatingNavClearance
 import com.jamiecarl.droneside.ui.components.FullScreenLoading
-import com.jamiecarl.droneside.ui.theme.DsBase
-import com.jamiecarl.droneside.ui.theme.DsCyan
-import com.jamiecarl.droneside.util.formatLongDate
+import com.jamiecarl.droneside.ui.components.SearchField
+import com.jamiecarl.droneside.ui.components.SegmentedControl
 import com.jamiecarl.droneside.util.parseApiDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,8 +39,7 @@ import java.util.Date
 
 data class ExploreUiState(
     val loading: Boolean = true,
-    val events: List<Event> = emptyList(),
-    val channels: List<Channel> = emptyList()
+    val events: List<Event> = emptyList()
 )
 
 class ExploreViewModel : ViewModel() {
@@ -59,9 +56,7 @@ class ExploreViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true)
             runCatching {
-                val events = repository.getEvents()
-                val channels = repository.getChannels()
-                _state.value = ExploreUiState(loading = false, events = events, channels = channels)
+                _state.value = ExploreUiState(loading = false, events = repository.getEvents())
             }.onFailure {
                 _state.value = _state.value.copy(loading = false)
             }
@@ -69,15 +64,15 @@ class ExploreViewModel : ViewModel() {
     }
 }
 
-private fun startOfDay(date: Date): Date {
-    val calendar = Calendar.getInstance()
-    calendar.time = date
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    return calendar.time
-}
+private fun startOfDay(date: Date): Date = Calendar.getInstance().apply {
+    time = date
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}.time
+
+private val timeframes = listOf("Upcoming", "Recent", "Previous")
 
 @Composable
 fun ExploreScreen(
@@ -85,60 +80,55 @@ fun ExploreScreen(
     onOpenEvent: (Event) -> Unit,
     viewModel: ExploreViewModel = viewModel()
 ) {
-    androidx.compose.runtime.LaunchedEffect(refreshKey) { viewModel.refresh(refreshKey) }
+    LaunchedEffect(refreshKey) { viewModel.refresh(refreshKey) }
     val state by viewModel.state.collectAsState()
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    var query by rememberSaveable { mutableStateOf("") }
 
     val now = Date()
     val today = startOfDay(now)
     val thirtyDaysAgo = Date(now.time - 30L * 24 * 60 * 60 * 1000)
 
-    val upcoming = state.events.filter { event ->
+    val inTimeframe = state.events.filter { event ->
         val start = parseApiDate(event.start)
         val end = parseApiDate(event.end)
         val startDay = start?.let { startOfDay(it) }
-        (startDay != null && !startDay.before(today)) ||
-            (start != null && end != null && !start.after(now) && !end.before(now))
+        when (selectedTab) {
+            0 -> (startDay != null && !startDay.before(today)) ||
+                (start != null && end != null && !start.after(now) && !end.before(now))
+            1 -> startDay != null && startDay.before(today) && !start.before(thirtyDaysAgo) &&
+                end != null && end.before(now)
+            else -> start != null && start.before(thirtyDaysAgo)
+        }
     }
-    val recent = state.events.filter { event ->
-        val start = parseApiDate(event.start)
-        val end = parseApiDate(event.end)
-        val startDay = start?.let { startOfDay(it) }
-        startDay != null && startDay.before(today) && !start!!.before(thirtyDaysAgo) && end != null && end.before(now)
+    // Upcoming reads soonest-first; past timeframes stay newest-first.
+    val ordered = if (selectedTab == 0) inTimeframe.reversed() else inTimeframe
+    val term = query.trim().lowercase()
+    val events = if (term.isEmpty()) ordered else ordered.filter {
+        it.name.lowercase().contains(term) || (it.club.name?.lowercase()?.contains(term) == true)
     }
-    val previous = state.events.filter { event ->
-        val start = parseApiDate(event.start)
-        start != null && start.before(thirtyDaysAgo)
-    }
-
-    val tabs = listOf("Upcoming" to upcoming, "Recent" to recent, "Previous" to previous)
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = selectedTab, containerColor = DsBase, contentColor = DsCyan) {
-            tabs.forEachIndexed { index, (title, _) ->
-                Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(title) })
-            }
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SearchField(value = query, onValueChange = { query = it }, placeholder = "Search events or clubs")
+            SegmentedControl(options = timeframes, selectedIndex = selectedTab, onSelect = { selectedTab = it })
         }
 
-        val (_, events) = tabs[selectedTab]
         when {
             state.loading -> FullScreenLoading("Loading events...")
-            events.isEmpty() -> EmptyState(
-                icon = FaIcon.CLOCK,
-                title = "No ${tabs[selectedTab].first.lowercase()} events found",
-                subtitle = ""
-            )
+            events.isEmpty() && term.isNotEmpty() ->
+                EmptyState(DsIcons.Search, "No events match \"${query.trim()}\"")
+            events.isEmpty() ->
+                EmptyState(DsIcons.Calendar, "No ${timeframes[selectedTab].lowercase()} events found")
             else -> LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = FloatingNavClearance),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(events) { event ->
-                    ClubEventHeaderCard(
-                        event = event,
-                        formattedDate = formatLongDate(event.start),
-                        onTap = { onOpenEvent(event) },
-                        modifier = Modifier.padding(bottom = 10.dp)
-                    )
+                items(events, key = { it.id }) { event ->
+                    EventCard(event = event, onTap = { onOpenEvent(event) }, showClub = true)
                 }
             }
         }

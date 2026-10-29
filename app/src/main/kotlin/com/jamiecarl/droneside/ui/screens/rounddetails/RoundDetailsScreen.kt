@@ -1,8 +1,8 @@
 package com.jamiecarl.droneside.ui.screens.rounddetails
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -34,19 +33,19 @@ import com.jamiecarl.droneside.data.model.RaceDetail
 import com.jamiecarl.droneside.data.model.ResultSummary
 import com.jamiecarl.droneside.data.repository.EventSessionCache
 import com.jamiecarl.droneside.data.repository.FpvTracksideRepository
+import com.jamiecarl.droneside.ui.components.Chip
+import com.jamiecarl.droneside.ui.components.DsIcons
 import com.jamiecarl.droneside.ui.components.EmptyState
-import com.jamiecarl.droneside.ui.components.FaIcon
 import com.jamiecarl.droneside.ui.components.FullScreenLoading
+import com.jamiecarl.droneside.ui.components.SectionLabel
+import com.jamiecarl.droneside.ui.components.dsCard
 import com.jamiecarl.droneside.ui.theme.DsCyan
 import com.jamiecarl.droneside.ui.theme.DsCyanBorder
 import com.jamiecarl.droneside.ui.theme.DsCyanSurface
 import com.jamiecarl.droneside.ui.theme.DsFaint
 import com.jamiecarl.droneside.ui.theme.DsInk
 import com.jamiecarl.droneside.ui.theme.DsInk2
-import com.jamiecarl.droneside.ui.theme.DsLine
 import com.jamiecarl.droneside.ui.theme.DsMuted
-import com.jamiecarl.droneside.ui.theme.DsMuted2
-import com.jamiecarl.droneside.ui.theme.DsSurface
 import com.jamiecarl.droneside.ui.theme.MonoDs
 import com.jamiecarl.droneside.util.RaceStatus
 import com.jamiecarl.droneside.util.formatRaceTime
@@ -98,12 +97,16 @@ fun parseHexColor(hex: String?): Color? = runCatching {
     Color(android.graphics.Color.parseColor(hex))
 }.getOrNull()
 
+fun raceStatusLabel(status: RaceStatus): String = when (status) {
+    RaceStatus.COMPLETE -> "COMPLETE"
+    RaceStatus.RUNNING -> "RUNNING"
+    RaceStatus.NOT_STARTED -> "NOT STARTED"
+}
+
 @Composable
 fun RoundDetailsScreen(
     eventId: String,
     roundId: String,
-    eventName: String,
-    roundNumber: String,
     eventType: String,
     refreshKey: Int,
     onOpenRace: (RaceDetail) -> Unit,
@@ -112,106 +115,67 @@ fun RoundDetailsScreen(
     LaunchedEffect(eventId, roundId, refreshKey) { viewModel.refresh(eventId, roundId, eventType, refreshKey) }
     val state by viewModel.state.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp, 4.dp, 20.dp, 16.dp)) {
-            Text(text = eventName, color = DsMuted2, fontSize = 13.sp, modifier = Modifier.padding(bottom = 4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Round $roundNumber",
-                    color = DsInk,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = eventType.uppercase(),
-                    fontFamily = MonoDs,
-                    fontSize = 10.sp,
-                    color = DsCyan,
-                    modifier = Modifier
-                        .background(DsCyanSurface, RoundedCornerShape(6.dp))
-                        .border(1.dp, DsCyanBorder, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                )
+    when {
+        state.loading -> FullScreenLoading("Loading races...")
+        state.races.isEmpty() -> EmptyState(DsIcons.Flag, "No races found", "This round doesn't have any races")
+        else -> LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionLabel("${state.races.size} RACES", modifier = Modifier.weight(1f))
+                    Chip(eventType.uppercase(), color = DsCyan, background = DsCyanSurface, border = DsCyanBorder)
+                }
             }
-        }
+            items(state.races, key = { it.id }) { race ->
+                val status = raceStatus(race.start, race.end)
+                val statusText = raceStatusLabel(status) +
+                    if (eventType != "TimeTrial") " · ${race.targetLaps ?: "-"} LAPS" else ""
 
-        when {
-            state.loading -> FullScreenLoading("Loading races...")
-            state.races.isEmpty() -> EmptyState(
-                icon = FaIcon.FLAG_CHECKERED,
-                title = "No races found",
-                subtitle = "This round doesn't have any races"
-            )
-            else -> LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                items(state.races, key = { it.id }) { race ->
-                    val status = raceStatus(race.start, race.end)
-                    val statusText = when (status) {
-                        RaceStatus.COMPLETE -> "COMPLETE"
-                        RaceStatus.RUNNING -> "RUNNING"
-                        RaceStatus.NOT_STARTED -> "NOT STARTED"
-                    } + if (eventType != "TimeTrial") " · ${race.targetLaps ?: "-"} LAPS" else ""
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp)
-                            .background(DsSurface, RoundedCornerShape(16.dp))
-                            .border(1.dp, DsLine, RoundedCornerShape(16.dp))
-                            .clickable { onOpenRace(race) }
-                            .padding(16.dp)
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .dsCard(radius = 22.dp)
+                        .clickable { onOpenRace(race) }
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "Race ${race.raceNumber}",
+                            color = DsInk,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SectionLabel(statusText, color = if (status == RaceStatus.RUNNING) DsCyan else DsMuted)
+                    }
+                    race.resultSummaries.forEach { result ->
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "Race ${race.raceNumber}",
-                                color = DsInk,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = statusText,
+                                result.position?.takeIf { it.isNotBlank() } ?: "-",
                                 fontFamily = MonoDs,
-                                fontSize = 10.sp,
-                                color = if (status == RaceStatus.RUNNING) DsCyan else DsMuted
+                                fontSize = 12.sp,
+                                color = DsMuted,
+                                modifier = Modifier.width(20.dp)
                             )
-                        }
-                        race.resultSummaries.forEach { result ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = result.position?.takeIf { it.isNotBlank() } ?: "-",
-                                    fontFamily = MonoDs,
-                                    fontSize = 12.sp,
-                                    color = DsMuted,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.width(14.dp)
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 4.dp, end = 10.dp)
-                                        .width(3.dp)
-                                        .height(16.dp)
-                                        .background(
-                                            parseHexColor(result.resolvedChannel?.color) ?: DsFaint,
-                                            RoundedCornerShape(2.dp)
-                                        )
-                                )
-                                Text(
-                                    text = result.pilotName,
-                                    color = DsInk2,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Text(
-                                    text = displayTime(result, eventType),
-                                    fontFamily = MonoDs,
-                                    fontSize = 14.sp,
-                                    color = DsInk
-                                )
-                            }
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .width(4.dp)
+                                    .height(18.dp)
+                                    .background(
+                                        parseHexColor(result.resolvedChannel?.color) ?: DsFaint,
+                                        RoundedCornerShape(2.dp)
+                                    )
+                            )
+                            Text(result.pilotName, color = DsInk2, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                            Text(displayTime(result, eventType), fontFamily = MonoDs, fontSize = 13.sp, color = DsInk)
                         }
                     }
                 }
