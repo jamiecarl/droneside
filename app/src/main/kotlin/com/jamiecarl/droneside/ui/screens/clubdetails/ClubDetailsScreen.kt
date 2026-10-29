@@ -1,7 +1,16 @@
 package com.jamiecarl.droneside.ui.screens.clubdetails
 
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import com.jamiecarl.droneside.ui.components.ClubMap
+import com.jamiecarl.droneside.ui.components.openInMaps
+import com.jamiecarl.droneside.ui.theme.DsOnCyan
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,7 +59,6 @@ import com.jamiecarl.droneside.ui.theme.DsCyanSurface
 import com.jamiecarl.droneside.ui.theme.DsInk
 import com.jamiecarl.droneside.ui.theme.DsInk2
 import com.jamiecarl.droneside.ui.theme.DsMuted
-import com.jamiecarl.droneside.ui.theme.DsSurface2
 import com.jamiecarl.droneside.ui.theme.MonoDs
 import com.jamiecarl.droneside.util.formatLongDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -162,7 +170,7 @@ fun ClubDetailsScreen(
 
             if (selectedTab == 0) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     InfoCard(icon = DsIcons.Calendar, label = "FOUNDED") {
@@ -173,21 +181,32 @@ fun ClubDetailsScreen(
                             Text(it.trim(), color = DsInk2, fontSize = 15.sp, lineHeight = 21.sp)
                         }
                         Text("Timezone: ${club.timezone ?: "-"}", color = DsMuted, fontSize = 13.sp)
-                        if (club.latitude != null && club.longitude != null) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp)
-                                    .dsCard(radius = 14.dp, background = DsSurface2)
-                                    .padding(12.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                SectionLabel("COORDINATES")
+                        val lat = club.latitude
+                        val lng = club.longitude
+                        // 0,0 is what unset coordinates come back as; there's no club in the Gulf of Guinea.
+                        if (lat != null && lng != null && !(lat == 0.0 && lng == 0.0)) {
+                            val context = LocalContext.current
+                            ClubMap(latitude = lat, longitude = lng, label = club.name, modifier = Modifier.padding(top = 4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    SectionLabel("COORDINATES")
+                                    Text(
+                                        String.format(Locale.US, "%.5f, %.5f", lat, lng),
+                                        fontFamily = MonoDs,
+                                        fontSize = 12.sp,
+                                        color = DsInk2
+                                    )
+                                }
                                 Text(
-                                    String.format(Locale.US, "%.6f, %.6f", club.latitude, club.longitude),
-                                    fontFamily = MonoDs,
-                                    fontSize = 12.sp,
-                                    color = DsInk2
+                                    "Open in Maps",
+                                    color = DsOnCyan,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(22.dp))
+                                        .background(DsCyan)
+                                        .clickable(role = Role.Button) { openInMaps(context, lat, lng, club.name) }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp)
                                 )
                             }
                         }
